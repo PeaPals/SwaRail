@@ -1,0 +1,8 @@
+{
+    "TRACK_CIRCUIT_COLORS" : {
+        "bi" : "yellow",
+        "right" : "pink",
+        "left" : "azure",
+        "-bi" : [0.4, 0.2, 1]
+    }
+}
