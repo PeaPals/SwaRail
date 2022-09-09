@@ -1,6 +1,6 @@
 from ursina import color
 import logging
-from SwaRail.Utilities.DatabaseHandler import Database
+from SwaRail.Utilities.database_handler import Database
 
 
 # TODO :- set all colours using rgba values if colors not present in default colors of ursina

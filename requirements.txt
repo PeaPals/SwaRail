@@ -1,7 +1,7 @@
 orjson
 ursina
 
-# later dependencies
+# later dependencies for server
 fastapi
 starlite
 
@@ -12,13 +12,13 @@ EditorCamera() -> will help in zooming in and out using mouse scroll (can be mad
 SmoothFollow() -> useful to make a object follow another object at some distance
 Conversation() -> useful for showing a question along with options
 InputField() -> field to input some text or password (important for making CLI)
-WindowPanel() -> to automatically size the panel and show it on window
+WindowPanel() -> to automatically size the panel and show it on window (useful for login panels and command panels)
 application() -> function to use pause(), resume() and quit() of applications
 
 
 # datasets online
 
 for train schedule -> https://www.kaggle.com/datasets/arihantjain09/indian-railways-latest?select=train_schedule.csv
-for station, trains and scheule -> https://www.kaggle.com/datasets/sripaadsrinivasan/indian-railways-dataset?select=stations.json
+for station, trains and schedule -> https://www.kaggle.com/datasets/sripaadsrinivasan/indian-railways-dataset?select=stations.json
 
 
