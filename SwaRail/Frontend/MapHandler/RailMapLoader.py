@@ -3,7 +3,11 @@ from SwaRail.Frontend.Components.tracks import TrackCircuit
 from SwaRail.Frontend.Components.signals import Signal
 from SwaRail.Frontend.Components.stations import Station
 from SwaRail.Frontend.Components.crossover import Crossover
+from SwaRail.Frontend.Components.seperator import Seperator
 from ursina import Vec3
+
+
+# MAJOR TODO :- add text labels to all track circuits ID... on them... maybe show them if zoomed in enough?
 
 
 class MapParser:
@@ -24,10 +28,6 @@ class MapParser:
         # iterating through each line and parsing it
         for line_no, line in enumerate(cls.map_data):
             cls._parse_line(line, line_no)
-
-        # iterating through each line and parsing only switches/crossovers this time
-        # this is done seperately as while paring lines we dont know details of track circuits
-        # of both end points of the crossover/switches
 
         # logging a summary of database
         constants.logging.debug(constants.Database.summary())
@@ -107,6 +107,13 @@ class MapParser:
 
 
     @classmethod
+    def _draw_seperator_on_screen(cls):
+        position = cls.CURR_TRACK_CIRCUIT.ending_pos
+        Seperator(position = position)
+
+
+
+    @classmethod
     def _seperate_track_circuits(cls, X_coordinate, Y_coordinate):
         if cls.CURR_TRACK_CIRCUIT == None: # no track circuit to seperate
             constants.logging.warn(f"Ignoring track circuit seperation request at line:{Y_coordinate+1} col:{X_coordinate+1} since its declared before track circuit and direction registration")
@@ -114,6 +121,11 @@ class MapParser:
 
         cls.CURR_TRACK_CIRCUIT.ending_pos = Vec3(X_coordinate * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * Y_coordinate, 0)
         cls.CURR_TRACK_CIRCUIT.ending_pos.x += constants.CHARACTER_TO_LENGTH
+
+        # draw seperator on screen if settings allow it
+        if constants.SHOW_TRACK_CIRCUIT_SEPERATOR == True:
+            cls._draw_seperator_on_screen()
+
         cls._end_curr_track_circuit()
 
 

@@ -55,6 +55,7 @@ class Crossover(Entity):
 
 
     def set_to_main_line(self):
+        # TODO :- add feature to blink for 2 seconds before changing (use Entity.blink())
         if self._is_active == False:
             return None
 
@@ -62,6 +63,7 @@ class Crossover(Entity):
 
     
     def set_to_change_lines(self):
+        # TODO :- add feature to blink for 2 seconds before changing (use Entity.blink())
         if self._is_active == True:
             return None
 

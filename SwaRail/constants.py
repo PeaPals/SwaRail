@@ -74,6 +74,16 @@ TRACK_CIRCUIT_COLOR = {
 }
 
 
+# track seperator constants
+SHOW_TRACK_CIRCUIT_SEPERATOR = False
+SEPERATOR_SCALE = (0.1, 0.35, 1)
+SEPERATOR_COLOR = color.pink
+
+# TODO :- remove this maybe?
+if len(set(TRACK_CIRCUIT_COLOR.values())) == 1:
+    SHOW_TRACK_CIRCUIT_SEPERATOR = True
+
+
 # signal constants
 SIGNAL_OFFSET_FROM_TRACKS = 0.25
 SIGNAL_SIZE = 0.12
