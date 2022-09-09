@@ -7,6 +7,7 @@ class Database:
         cls.TRACK_CIRCUITS = {}
         cls.STATIONS = {}
         cls.HAULTS = {}
+        cls.CROSSOVERS = {}
 
 
     @classmethod
@@ -17,4 +18,5 @@ class Database:
         SIGNALS = {cls.SIGNALS.keys()}\n
         STATIONS = {cls.STATIONS}\n
         HAULTS = {cls.HAULTS.keys()}\n
+        CROSSOVERS = {cls.CROSSOVERS.keys()}\n
         '''

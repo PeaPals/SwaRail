@@ -96,3 +96,6 @@ NUMBER_TO_SIGNAL = {
 # station constants
 HAULT_WIDTH_FROM_TRACKS = 0.35
 HAULT_COLOR = color.dark_gray
+
+# crossover constants
+CROSSOVER_INACTIVE_COLOR = color.gray

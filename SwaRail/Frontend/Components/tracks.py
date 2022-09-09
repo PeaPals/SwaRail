@@ -1,17 +1,17 @@
 from ursina import Entity, Mesh
 from SwaRail import constants
 
-class Track_Circuit(Entity):
+class TrackCircuit(Entity):
     def __init__(self, **kwargs):
         super().__init__()
 
         self.ID = None
         self.starting_pos = None
         self.ending_pos = None
-        self.connections = {}
+        self.connections = {'right': [], 'left': []}
         self.direction = None
         self.color = None
-        self.signals = {}
+        self.signals = {'right': [], 'left': []}
         self.hault_id = None
         self.line_length = 0
         self.track_circuit_length = 0
@@ -45,8 +45,7 @@ class Track_Circuit(Entity):
 
     def finalize_signals(self):
         # reversing the order of left direction signals
-        if self.signals.get('left', False):
-            self.signals['left'].reverse()
+        self.signals['left'].reverse()
 
 
     def finalize_station(self):
