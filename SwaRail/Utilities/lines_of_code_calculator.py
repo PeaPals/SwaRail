@@ -3,7 +3,7 @@ import os
 total_lines = 0
 considered_files = []
 
-for path, folders, files in os.walk("SwaRail"):
+for path, folders, files in os.walk("../../SwaRail"):
     if path.endswith("__"):
         continue
 

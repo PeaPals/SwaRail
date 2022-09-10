@@ -1,0 +1,1 @@
+# Frontend will provide the necessary UI for the SwaRail app and demonstrate its working visually

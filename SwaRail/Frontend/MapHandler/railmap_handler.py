@@ -3,9 +3,6 @@ from SwaRail.Frontend.Components import Crossover, Seperator, Signal, Station, T
 from ursina import Vec3
 
 
-# MAJOR TODO :- add text labels to all track circuits ID... on them... maybe show them if zoomed in enough?
-
-
 class MapParser:
     map_data = None
 
@@ -369,3 +366,22 @@ class MapParser:
 
         # update station infos
         cls._update_station_infos(curr_station)
+
+
+
+    # ------------------------------- classmethods to update text labels ------------------------------- #
+
+    # MAJOR TODO :- add text labels to all track circuits ID... on them... maybe show them if zoomed in enough?
+    @classmethod
+    def _add_text_labels(cls):
+        from ursina import Text
+
+        Text.size = 0.05
+        Text.default_resolution = 1080 * Text.size
+        info = Text(text="A powerful waterfall roaring on the mountains")
+        info.x = -0.5
+        info.y = 0.4
+        info.background = True
+        info.visible = False                    # Do not show this text
+        
+        raise NotImplementedError
