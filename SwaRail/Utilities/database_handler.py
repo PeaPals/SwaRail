@@ -12,6 +12,14 @@ class Database:
 
     @classmethod
     def summary(cls):
+        for track_circuit in cls.TRACK_CIRCUITS.values():
+            print(f"{track_circuit.ID}, {track_circuit.connections}")
+        
+
+        return f'''
+        TRACK_CIRCUITS = {cls.TRACK_CIRCUITS.keys()}
+        '''
+
         return f'''
         TRACKS = {cls.TRACKS.keys()}\n
         TRACK CIRCUITS = {cls.TRACK_CIRCUITS.keys()}\n

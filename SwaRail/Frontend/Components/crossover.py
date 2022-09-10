@@ -15,17 +15,6 @@ class Crossover(Entity):
         self._is_active = False
 
 
-    def update_track_circuits_infos(self, starting_track_circuit, ending_track_circuit):
-
-        if self.direction == 'forward':
-            starting_track_circuit.connections['right'].append(self.ID)
-            ending_track_circuit.connections['left'].append(self.ID)
-
-        else:
-            starting_track_circuit.connections['left'].append(self.ID)
-            ending_track_circuit.connections['right'].append(self.ID)
-
-
     def update_attributes(self, track_circuit_1, track_circuit_2):
         # setting attributes
         self.line_length = mathematical.coordinate_distance(self.starting_pos, self.ending_pos, vec3=True)
@@ -50,7 +39,6 @@ class Crossover(Entity):
         track_circuit_2 = constants.Database.TRACK_CIRCUITS[track_circuit_2_id]
 
         self.update_attributes(track_circuit_1, track_circuit_2)
-        self.update_track_circuits_infos(track_circuit_1, track_circuit_2)
         self.set_to_main_line()
 
 
@@ -96,8 +84,7 @@ class Crossover(Entity):
     def __str__(self):
         return f'''
         ID = {self.ID}, connecting track circuits = {self.connecting_track_circuits},
-        direction = {self.direction}, connections = {self.connections},
-        starting = {self.starting_pos}, ending = {self.ending_pos}
+        direction = {self.direction}, connections = {self.connections}
         '''
 
     def input(self, key):

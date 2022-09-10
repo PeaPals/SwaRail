@@ -66,9 +66,6 @@ class MapParser:
         if cls.CURR_TRACK_CIRCUIT != None:
             cls._end_curr_track_circuit()
 
-        # if cls.CURR_CROSSOVER != None:
-        #     cls._end_curr_crossover(is_right_starter=True)
-
         # resetting used variables
         cls.TRACK_CIRCUIT_ID_COUNTER = 1
         cls.PREV_CONNECTION = None
@@ -207,7 +204,7 @@ class MapParser:
             else:
                 X_coordinate -= 1
 
-            if not (0 <= X_coordinate <= len(cls.map_data[line_no])):
+            if not (0 <= X_coordinate < len(cls.map_data[line_no])):
                 constants.logging.warn(f"Found no ending of crossover {character} at line:{Y_coordinate+1} col:{X_coordinate+1}, thus rejecting it")
                 break
 
@@ -216,8 +213,8 @@ class MapParser:
                     if (cls.map_data[line_no][X_coordinate-1] != ' ') and (cls.map_data[line_no][X_coordinate+1] != ' '):
                         ending_pos = Vec3(X_coordinate, line_no, 0)
                         return ending_pos
-                except Exception as e:
-                    constants.logging.warn(f"Rejecting crossover {character} ending at line:{line_no+1} col:{X_coordinate+1}. Please make sure that both side of the crossover (slash) on the railmap file is convered with any of -<>=+")
+                except IndexError as e:
+                    constants.logging.warn(f"Rejecting crossover {character} ending at line:{line_no+1} col:{X_coordinate+1}. Please make sure that both side of the ending crossover (slash) on the railmap file is covered with any of -<>=+")
                     break
             else:
                 constants.logging.warn(f"Found no ending of crossover {character} at line:{Y_coordinate+1} col:{X_coordinate+1}, thus rejecting it")
@@ -276,6 +273,19 @@ class MapParser:
     def _update_crossover_infos(cls, curr_crossover):
         # updating crossover object in database
         constants.Database.CROSSOVERS[curr_crossover.ID] = curr_crossover
+
+        # updating crossover info to track circuits
+        starting_track_circuit = cls.CURR_TRACK_CIRCUIT
+        ending_track_circuit_id = curr_crossover.connecting_track_circuits[1]
+        ending_track_circuit = constants.Database.TRACK_CIRCUITS[ending_track_circuit_id]
+
+        if curr_crossover.direction == 'forward':
+            starting_track_circuit.connections['right'].append(curr_crossover.ID)
+            ending_track_circuit.connections['left'].append(curr_crossover.ID)
+
+        else:
+            starting_track_circuit.connections['left'].append(curr_crossover.ID)
+            ending_track_circuit.connections['right'].append(curr_crossover.ID)
 
 
 
