@@ -48,15 +48,14 @@ class TrackCircuit(Entity):
     def _get_connections_sorting_key(self, component_id):
         component_details = component_id.split('-')
         id_prefix = component_details[0]
-
         key = None
 
         match id_prefix:
             case 'TC' : key = component_details[2]
             case 'CO' : 
-                crossover = constants.Database.CROSSOVERS[component_id]
-                if self.ID == crossover.connecting_track_circuits[0] : key = component_details[2].split('~')[0]
-                elif self.ID == crossover.connecting_track_circuits[1] : key = component_details[3]
+                curr_y_coordinate = self.ID.split('-')[1]
+                if curr_y_coordinate == component_details[1]: key = component_details[2]
+                elif curr_y_coordinate == component_details[3]: key = component_details[4]
 
         return int(key)
 

@@ -4,8 +4,6 @@ from ursina import Vec3
 from dataclasses import dataclass
 from SwaRail.Frontend.MapHandler.postparser import PostParser
 
-# MAJOR TODO :- Maybe just remove this '+' as a seperator and just use >, <, = as a seperator
-# and direction provider (this would be better)
 
 # MAJOR TODO :- Make Command Panel
 
@@ -26,8 +24,18 @@ class MapParser:
     COORDINATES = Vec2(0, 0)
 
 
+
     @classmethod
     def parse(cls, map_name):
+        # parsing map
+        cls._parse(map_name)
+
+        # parsing done... now post parsing operation begins
+        PostParser.start_postparsing_operations()
+
+
+    @classmethod
+    def _parse(cls, map_name):
         
         # reading file data
         with open(constants.MAP_PATH(map_name), 'r') as map_file:
@@ -38,10 +46,6 @@ class MapParser:
             # setting Y_coordinate and then parsing current line
             cls.COORDINATES.Y = line_no
             cls._parse_line(line)
-
-        # parsing done... now post parsing operation begins
-        PostParser.start_postparsing_operations()
-
 
 
     @classmethod
@@ -83,9 +87,16 @@ class MapParser:
 
     # ------------------------- classmethods for general use by all methods ------------------------- #
     
+
     @classmethod
-    def _get_id(cls, id_prefix):
-        return f"{id_prefix}-{cls.COORDINATES.Y}-{cls.COORDINATES.X}"
+    def _get_id(cls, id_prefix, *args):
+        id = f"{id_prefix}-{cls.COORDINATES.Y}-{cls.COORDINATES.X}"
+
+        for arg in args:
+            id += f'-{arg}'
+
+        return id
+
 
     @classmethod
     def _add_to_database(cls, component):
@@ -95,16 +106,18 @@ class MapParser:
             case 'TC' : constants.Database.TRACK_CIRCUITS[component.ID] = component
             case 'SI' : constants.Database.SIGNALS[component.ID] = component
             case 'CO' : constants.Database.CROSSOVERS[component.ID] = component
-    
+            case 'SP' : constants.Database.SEPERATORS[component.ID] = component
+
+
     @classmethod
     def _get_position(cls, X=None, Y=None):
         # will give current position if X and Y are absent
 
-        if X == None:
-            X = cls.COORDINATES.X
+        match X:
+            case None: X = cls.COORDINATES.X
 
-        if Y == None:
-            Y = cls.COORDINATES.Y
+        match Y:
+            case None: Y = cls.COORDINATES.Y
         
         return Vec3(X * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * Y, 0)        
 
@@ -132,13 +145,12 @@ class MapParser:
 
 
     @classmethod
-    def _create_visible_track_seperator(cls, left_tc, right_tc):
+    def _create_visible_track_seperator(cls):
         if constants.SHOW_TRACK_CIRCUIT_SEPERATOR:
-            seperator = Seperator(position=cls._get_position())
+            seperator = Seperator(ID = cls._get_id('SP'), position=cls._get_position())
 
             # adding to database
-            constants.Database.SEPERATORS[f"{left_tc.ID}~{right_tc.ID}"] = seperator
-
+            cls._add_to_database(seperator)
 
 
     @classmethod
@@ -147,26 +159,11 @@ class MapParser:
             return None
 
         # adding a visual seperator (useful if everything is of single colour)
-        cls._create_visible_track_seperator(left_tc, right_tc)
+        cls._create_visible_track_seperator()
 
         # updating connections
         left_tc.connections['>'].append(right_tc.ID)
         right_tc.connections['<'].append(left_tc.ID)
-
-
-        # # code for vertifying the connections w.r.t directions
-        # # TODO :- should I remove this?
-        # pattern = left.direction + right.direction
-
-        # match pattern:
-        #     case '==':
-        #         left.connections['>'].append(right.ID)
-        #         right.connections['<'].append(left.ID)
-            
-        #     case '>=' | '=>' | '>>' : left.connections['>'].append(right.ID)
-        #     case '<=' | '=<' | '<<' : right.connections['<'].append(left.ID)
-        #     case '<>' | '><' : pass
-
 
 
     @classmethod
@@ -198,7 +195,6 @@ class MapParser:
         cls._add_to_database(new_signal)
 
 
-
     @classmethod
     def _create_new_signal(cls, character):
         direction, signal_type = constants.NUMBER_TO_SIGNAL[character].split('-')
@@ -228,9 +224,8 @@ class MapParser:
             case '<': cls.CURR_TRACK_CIRCUIT.signals['<'].append(new_signal.ID)
 
 
-
-
     # ------------------------------ classmethods to update crossovers ------------------------------ #
+
 
     @classmethod
     def _start_new_crossover(cls, character):
@@ -255,13 +250,8 @@ class MapParser:
         # making a new crossover
         new_crossover = cls._create_new_crossover(character, ending_pos)
 
-        # updating ID for further use
-        new_crossover.ID += f"~{ending_pos.Y}-{ending_pos.X}"
-
         # update crossover infos everywhere
         cls._update_crossover_info(new_crossover, ending_track_circuit)
-
-
 
 
     @classmethod
@@ -274,8 +264,6 @@ class MapParser:
 
         return cls.__get_crossover_ending_pos(X_direction_adder, crossover_type)
         
-
-
 
     @classmethod
     def __get_crossover_ending_pos(cls, X_direction_adder, crossover_type):
@@ -298,7 +286,6 @@ class MapParser:
                 return Vec2(character_number, line_number)
 
 
-
     @classmethod
     def _get_ending_track_circuit_id(cls, ending_pos):
         line_number = ending_pos.Y
@@ -319,7 +306,7 @@ class MapParser:
     @classmethod
     def _create_new_crossover(cls, character, ending_pos):
         new_crossover = Crossover(
-            ID = cls._get_id('CO'),
+            ID = cls._get_id('CO', ending_pos.Y, ending_pos.X),
             crossover_type = character,
             starting_pos = cls._get_position(),
             ending_pos = cls._get_position(ending_pos.X, ending_pos.Y),
@@ -351,7 +338,6 @@ class MapParser:
                 new_crossover.connections = {'>': [cls.CURR_TRACK_CIRCUIT.ID], '<': [ending_track_circuit.ID]}
 
 
-
     # ------------------------------- classmethods to update stations ------------------------------- #
 
 
@@ -366,7 +352,6 @@ class MapParser:
 
         # updating database seperately
         cls._update_database_infos(hault, character)
-
 
 
     @classmethod

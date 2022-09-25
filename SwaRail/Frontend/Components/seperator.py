@@ -2,10 +2,14 @@ from ursina import Entity, Vec3
 from SwaRail import constants
 
 class Seperator(Entity):
-    def __init__(self, position, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__()
 
-        self.position = position
+        self.ID = None
+        self.position = None
+
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
 
     def finalize(self):
         # adding little elivation to cover joints between track circuits
