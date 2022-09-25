@@ -1,4 +1,4 @@
-from ursina import Entity, Mesh
+from ursina import Entity, Mesh, Vec3, Text
 from SwaRail import constants
 
 class TrackCircuit(Entity):
@@ -13,6 +13,7 @@ class TrackCircuit(Entity):
         self.color = None
         self.signals = {'<': [], '>': []}
         self.length = 0
+        self.label = None
 
         for key, value in kwargs.items():
             self.__setattr__(key, value)
@@ -70,6 +71,31 @@ class TrackCircuit(Entity):
 
         # the < direction connections should be sorted in decreasing order of index
         self.connections['<'].sort(key = lambda id: self._get_connections_sorting_key(id), reverse=True)
+
+
+    def _get_label_position(self):
+        position = (self.starting_pos + self.ending_pos) / 2        
+        position += constants.TRACK_CIRCUIT_LABEL_OFFSET
+
+        return position
+
+
+    def _create_label(self):
+        
+        self.label = Text(
+            text = self.ID,
+            parent = Entity(),
+            color = constants.TRACK_CIRCUIT_LABEL_COLOR,
+            position = self._get_label_position(),
+            scale = constants.TRACK_CIRCUIT_LABEL_SIZE
+        )
+
+
+    def show_label(self):
+        if self.label == None:
+            self._create_label()
+
+        self.label.visible = True
 
 
     def __str__(self):

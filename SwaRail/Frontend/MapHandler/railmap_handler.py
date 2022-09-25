@@ -363,22 +363,3 @@ class MapParser:
         match constants.Database.STATIONS.get(station_code, False):
             case False: constants.Database.STATIONS[station_code] = {cls.CURR_TRACK_CIRCUIT.ID}
             case _: constants.Database.STATIONS[station_code].add(cls.CURR_TRACK_CIRCUIT.ID)
-
-
-
-    # ------------------------------- classmethods to update text labels ------------------------------- #
-
-    # MAJOR TODO :- add text labels to all track circuits ID... on them... maybe show them if zoomed in enough?
-    @classmethod
-    def _add_text_labels(cls):
-        from ursina import Text
-
-        Text.size = 0.05
-        Text.default_resolution = 1080 * Text.size
-        info = Text(text="A powerful waterfall roaring on the mountains")
-        info.x = -0.5
-        info.y = 0.4
-        info.background = True
-        info.visible = False                    # Do not show this text
-        
-        raise NotImplementedError

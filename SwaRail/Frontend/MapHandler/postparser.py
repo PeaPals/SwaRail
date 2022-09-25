@@ -4,8 +4,42 @@ class PostParser():
 
     @classmethod
     def start_postparsing_operations(cls):
+        
+        # visual stuff
         cls._finalize_all_components()
-        cls.summary()
+        cls._add_text_labels()
+
+        # generating optimized database to be used by backend
+        cls._generate_tracks()
+        cls._generate_junctions()
+
+        # final summary
+        # cls.summary()
+
+
+    # ------------------------------- classmethods for global use ------------------------------- #
+
+
+    @classmethod
+    def summary(cls):
+        # logging a summary of database
+        constants.logging.debug(constants.Database.summary())
+
+
+    # ------------------------------- classmethods to update text labels ------------------------------- #
+
+
+    # MAJOR TODO :- add text labels to all track circuits ID... on them... maybe show them if zoomed in enough?
+
+    @classmethod
+    def _add_text_labels(cls):
+        for field in constants.FIELD_TO_LABEL:
+            for component in getattr(constants.Database, field).values():
+                component.show_label()
+
+
+    # ------------------------------- classmethods to update visuals ------------------------------- #
+
 
     @classmethod
     def _finalize_all_components(cls):
@@ -38,7 +72,17 @@ class PostParser():
             # print(id, seperator)
 
 
+    # ------------------------------- classmethods to generate tracks ------------------------------- #
+
+
     @classmethod
-    def summary(cls):
-        # logging a summary of database
-        constants.logging.debug(constants.Database.summary())
+    def _generate_tracks(cls):
+        pass
+
+
+    # ------------------------------ classmethods to generate junctions ------------------------------ #
+
+
+    @classmethod
+    def _generate_junctions(cls):
+        pass

@@ -1,4 +1,4 @@
-from ursina import Entity, Mesh, color
+from ursina import Entity, Mesh, Vec3, Text
 from SwaRail import constants
 from SwaRail.Utilities import mathematical
 
@@ -13,6 +13,7 @@ class Crossover(Entity):
         self.starting_pos = None
         self.ending_pos = None
         self.direction = None
+        self.label = None
 
         self._is_active = False
 
@@ -72,6 +73,7 @@ class Crossover(Entity):
                 '''
             )
 
+
     def set_to_main_line(self):
         # TODO :- add feature to blink for 2 seconds before changing (use Entity.blink())
         pass
@@ -81,6 +83,40 @@ class Crossover(Entity):
         # TODO :- add feature to blink for 2 seconds before changing (use Entity.blink())
         pass
 
+
+
+
+    def _get_label_position(self):
+        position = (self.starting_pos + self.ending_pos) / 2
+        return position + constants.CROSSOVER_BASE_OFFSET
+
+
+    def _get_label_rotation(self):
+        rotation = constants.CROSSOVER_BASE_ROTATION
+
+        match self.crossover_type:
+            case '/': rotation *= -1
+
+        return rotation
+
+
+    def _create_label(self):
+        
+        self.label = Text(
+            text = self.ID,
+            parent = Entity(),
+            color = constants.CROSSOVER_LABEL_COLOR,
+            scale = constants.CROSSOVER_LABEL_SIZE,
+            position = self._get_label_position(),
+            rotation = self._get_label_rotation(),
+        )
+
+
+    def show_label(self):
+        if self.label == None:
+            self._create_label()
+
+        self.label.visible = True
 
 
     def __str__(self):

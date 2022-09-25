@@ -1,4 +1,4 @@
-from ursina import color
+from ursina import color, Vec3, Text
 import logging
 from SwaRail.Utilities.database_handler import Database
 
@@ -66,7 +66,7 @@ TRACK_CIRCUIT_COLOR = {
 }
 
 # track seperator constants
-SEPERATOR_SCALE = (0.1, 0.35, 1)
+SEPERATOR_SCALE = Vec3(0.1, 0.35, 1)
 SEPERATOR_COLOR = color.green         # TODO :- is track circuit visual seperator even required?
 SHOW_TRACK_CIRCUIT_SEPERATOR = True   # TODO :- remove this maybe? just control visibility using color?
 
@@ -97,3 +97,22 @@ HAULT_COLOR = color.dark_gray
 # crossover constants
 CROSSOVER_ACTIVE_COLOR = None
 CROSSOVER_INACTIVE_COLOR = color.gray
+
+
+
+# --------------------------------- MapHandler:PostParser Constants --------------------------------- #
+
+# altering global text fields
+Text.font = 'VeraMono.ttf'
+
+# declaring constants for text labels
+FIELD_TO_LABEL = ['TRACK_CIRCUITS'] # TODO :- add label for crossover
+
+TRACK_CIRCUIT_LABEL_COLOR = color.yellow
+TRACK_CIRCUIT_LABEL_SIZE = 7
+TRACK_CIRCUIT_LABEL_OFFSET = Vec3(-0.1, 0.35, 0.2)
+
+CROSSOVER_LABEL_COLOR = color.yellow
+CROSSOVER_LABEL_SIZE = 4
+CROSSOVER_BASE_OFFSET = Vec3(-0.5, -0.1, 0.2)
+CROSSOVER_BASE_ROTATION = Vec3(0, 0, 75)
