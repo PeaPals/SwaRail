@@ -7,23 +7,28 @@ class Crossover(Entity):
         super().__init__()
 
         self.ID = None
-        self.connections = {'right': [], 'left': []}
+        self.connections = {'<': [], '>': []}
         self.connecting_track_circuits = []
-        self.direction = None
+        self.crossover_type = None
         self.starting_pos = None
         self.ending_pos = None
+        self.direction = None
+
         self._is_active = False
 
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
 
-    def update_attributes(self, track_circuit_1, track_circuit_2):
-        # setting attributes
-        self.line_length = mathematical.coordinate_distance(self.starting_pos, self.ending_pos, vec3=True)
-        self.track_circuit_length = round(self.line_length * 100) / 1000
 
-        self.color_1 = track_circuit_1.color
-        self.color_2 = track_circuit_2.color
+    def finalize(self):
+        # order is important
+        self.check_crossover_validity()
+        self.finalize_attributes()
+        self.draw()
 
-        # setting model
+
+    def draw(self):
+        # drawing the model
         self.model = Mesh(
             vertices=[self.starting_pos, self.ending_pos],
             colors = [self.color_1, self.color_2],
@@ -31,60 +36,58 @@ class Crossover(Entity):
             thickness=constants.TRACK_CIRCUIT_THICKNESS
         )
 
-    def finalize_crossover(self):
-        track_circuit_1_id = self.connecting_track_circuits[0]
-        track_circuit_2_id = self.connecting_track_circuits[1]
+
+    def finalize_attributes(self):
+        # setting length of crossover attributes
+        # TODO :- is it even required?
+        self.length = mathematical.coordinate_distance(self.starting_pos, self.ending_pos, vec3=True)
+
+        # setting color of crossover
+        match constants.CROSSOVER_ACTIVE_COLOR:
+            case None:
+                track_circuit_1, track_circuit_2 = self._get_connecting_track_circuits()
+                self.color_1, self.color_2 = track_circuit_1.color, track_circuit_2.color
+            case _:
+                self.color_1, self.color_2 = constants.CROSSOVER_ACTIVE_COLOR, constants.CROSSOVER_ACTIVE_COLOR
+
+
+
+    def _get_connecting_track_circuits(self):
+        track_circuit_1_id, track_circuit_2_id = self.connecting_track_circuits
 
         track_circuit_1 = constants.Database.TRACK_CIRCUITS[track_circuit_1_id]
         track_circuit_2 = constants.Database.TRACK_CIRCUITS[track_circuit_2_id]
 
-        self.update_attributes(track_circuit_1, track_circuit_2)
-        self.set_to_main_line()
+        return track_circuit_1, track_circuit_2
 
+
+
+    def check_crossover_validity(self):
+        if self.connections['>'] == self.connections['<'] == []:
+            constants.logging.critical(
+                f'''The Crossover of type {self.crossover_type} starting at LINE:{int(self.starting_pos.y) + 1} COL:{int(self.starting_pos.x) + 1},
+                    ending at LINE:{int(self.ending_pos.y) + 1} COL:{int(self.ending_pos.x) + 1}, doesn't align with
+                    directions of its connections from both ends, thus it is consider of no particular use on map
+                    and should be removed or fixed
+                '''
+            )
 
     def set_to_main_line(self):
         # TODO :- add feature to blink for 2 seconds before changing (use Entity.blink())
-        if self._is_active == False:
-            return None
-
-        self.toggle_crossover()
+        pass
 
     
     def set_to_change_lines(self):
         # TODO :- add feature to blink for 2 seconds before changing (use Entity.blink())
-        if self._is_active == True:
-            return None
-
-        self.toggle_crossover()
-
-
-    def toggle_crossover(self):
-        if self._is_active == True:
-            self._is_active = False
-            
-            self.model = Mesh(
-                vertices=[self.starting_pos, self.ending_pos],
-                colors = [constants.CROSSOVER_INACTIVE_COLOR, constants.CROSSOVER_INACTIVE_COLOR],
-                mode='line', 
-                thickness=constants.TRACK_CIRCUIT_THICKNESS
-            )
-
-        else:
-            self._is_active = True
-
-            self.model = Mesh(
-                vertices=[self.starting_pos, self.ending_pos],
-                colors = [self.color_1, self.color_2],
-                mode='line', 
-                thickness=constants.TRACK_CIRCUIT_THICKNESS
-            )
+        pass
 
 
 
     def __str__(self):
         return f'''
-        ID = {self.ID}, connecting track circuits = {self.connecting_track_circuits},
-        direction = {self.direction}, connections = {self.connections}
+        I Am A Crossover
+        ID = {self.ID}, type = {self.crossover_type}, starting_pos = {self.starting_pos},
+        ending_pos = {self.ending_pos}, connections = {self.connections}, connecting track circuits = {self.connecting_track_circuits}
         '''
 
     def input(self, key):

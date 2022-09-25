@@ -1,7 +1,17 @@
 from SwaRail import constants
-from SwaRail.Frontend.Components import Crossover, Seperator, Signal, Station, TrackCircuit
+from SwaRail.Frontend.Components import Crossover, Seperator, Signal, Hault, TrackCircuit
 from ursina import Vec3
 from dataclasses import dataclass
+from SwaRail.Frontend.MapHandler.postparser import PostParser
+
+# MAJOR TODO :- Maybe just remove this '+' as a seperator and just use >, <, = as a seperator
+# and direction provider (this would be better)
+
+# MAJOR TODO :- Make Command Panel
+
+# MAJOR TODO :- Make a track_maker which will merge continous track circuit to make a track
+# to reduce complexity by many folds on backend and to also increase chances of train fitting
+# in a particular track without disturbing the network
 
 
 @dataclass
@@ -11,13 +21,9 @@ class Vec2:
 
 
 class MapParser:
-    map_data = None
-
-    TRACK_CIRCUIT_ID_COUNTER = 1
-    PREV_CONNECTION = None
+    MAP_DATA = None
     CURR_TRACK_CIRCUIT = None
-
-    COORDINATE = Vec2(0, 0)
+    COORDINATES = Vec2(0, 0)
 
 
     @classmethod
@@ -25,16 +31,16 @@ class MapParser:
         
         # reading file data
         with open(constants.MAP_PATH(map_name), 'r') as map_file:
-            cls.map_data = map_file.read().split('\n') # TODO :- convert path to absolute path
+            cls.MAP_DATA = map_file.read().split('\n') # TODO :- convert path to absolute path
 
         # iterating through each line and parsing it
-        for line_no, line in enumerate(cls.map_data):
+        for line_no, line in enumerate(cls.MAP_DATA):
             # setting Y_coordinate and then parsing current line
-            cls.COORDINATE.Y = line_no
+            cls.COORDINATES.Y = line_no
             cls._parse_line(line)
 
-        # logging a summary of database
-        constants.logging.debug(constants.Database.summary())
+        # parsing done... now post parsing operation begins
+        PostParser.start_postparsing_operations()
 
 
 
@@ -45,98 +51,136 @@ class MapParser:
         for index, character in enumerate(line):
 
             # setting X_coordinate
-            cls.COORDINATE.X = index
+            cls.COORDINATES.X = index
             
             # starting checks
             if character == ' ':
-                cls._seperate_track_circuits(warning=False)
+                cls._end_curr_track_circuit()
 
-            elif character in '-<>=':
-                cls._update_curr_track_circuit(character)
+            elif character in '-':
+                continue
 
-            elif character in '+':
-                cls._seperate_track_circuits()
+            elif character in ('<', '>', '='):
+                cls._start_new_track_circuit(character)
 
             elif character in '\/':
-                cls._add_new_crossover(character)
+                cls._start_new_crossover(character)
+                pass
 
             elif character in '0123456789':
                 cls._add_new_signal(character)
 
             else:
                 # else is a station with station code and its mapping in railmap file
-                cls._add_new_station(character)
+                cls._set_new_hault(character)
 
 
         # add any remaining component to the database
         if cls.CURR_TRACK_CIRCUIT != None:
-            # cls._end_curr_track_circuit()
-            cls.COORDINATE.X = len(line)-1
-            cls._seperate_track_circuits()
-
-        # resetting used variables
-        cls.TRACK_CIRCUIT_ID_COUNTER = 1
-        cls.PREV_CONNECTION = None
-
-        # finalizing all crossovers
-        for crossover in constants.Database.CROSSOVERS.values():
-            crossover.finalize_crossover()
+            cls.COORDINATES.X += 1
+            cls._end_curr_track_circuit()
 
 
+    # ------------------------- classmethods for general use by all methods ------------------------- #
+    
+    @classmethod
+    def _get_id(cls, id_prefix):
+        return f"{id_prefix}-{cls.COORDINATES.Y}-{cls.COORDINATES.X}"
+
+    @classmethod
+    def _add_to_database(cls, component):
+        id_prefix = component.ID[:2]
+
+        match id_prefix:
+            case 'TC' : constants.Database.TRACK_CIRCUITS[component.ID] = component
+            case 'SI' : constants.Database.SIGNALS[component.ID] = component
+            case 'CO' : constants.Database.CROSSOVERS[component.ID] = component
+    
+    @classmethod
+    def _get_position(cls, X=None, Y=None):
+        # will give current position if X and Y are absent
+
+        if X == None:
+            X = cls.COORDINATES.X
+
+        if Y == None:
+            Y = cls.COORDINATES.Y
+        
+        return Vec3(X * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * Y, 0)        
 
 
     # ---------------------------- classmethods to update track circuits ---------------------------- #
 
 
     @classmethod
-    def _update_curr_track_circuit(cls, character):
-        if cls.CURR_TRACK_CIRCUIT == None:
-            cls.CURR_TRACK_CIRCUIT = TrackCircuit()
-            cls.CURR_TRACK_CIRCUIT.ID = f'TC-{cls.COORDINATE.Y}-{cls.TRACK_CIRCUIT_ID_COUNTER}'
-            cls.CURR_TRACK_CIRCUIT.direction = constants.CHARACTER_TO_DIRECTION[character]
-            cls.CURR_TRACK_CIRCUIT.connections["left"] = [] if cls.PREV_CONNECTION == None else [cls.PREV_CONNECTION.ID]
-            cls.CURR_TRACK_CIRCUIT.starting_pos = Vec3(cls.COORDINATE.X * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * cls.COORDINATE.Y, 0)
+    def _start_new_track_circuit(cls, character):
+        # making new track circuit
+        new_track_circuit = TrackCircuit(
+            ID = cls._get_id('TC'),
+            direction = character,
+            starting_pos = cls._get_position(),
+        )
 
-            cls.TRACK_CIRCUIT_ID_COUNTER += 1
+        # connecting new and old (curr) track circuit
+        cls._connect_track_circuits(cls.CURR_TRACK_CIRCUIT, new_track_circuit)
+
+        # ending old (curr) track circuit
+        cls._end_curr_track_circuit()
+
+        # making new circuit as curr circuit
+        cls.CURR_TRACK_CIRCUIT = new_track_circuit
 
 
     @classmethod
-    def _draw_seperator_on_screen(cls):
-        position = cls.CURR_TRACK_CIRCUIT.ending_pos
-        Seperator(position = position)
+    def _create_visible_track_seperator(cls, left_tc, right_tc):
+        if constants.SHOW_TRACK_CIRCUIT_SEPERATOR:
+            seperator = Seperator(position=cls._get_position())
+
+            # adding to database
+            constants.Database.SEPERATORS[f"{left_tc.ID}~{right_tc.ID}"] = seperator
+
 
 
     @classmethod
-    def _seperate_track_circuits(cls, warning=True):
-        if cls.CURR_TRACK_CIRCUIT == None: # no track circuit to seperate
-            if Warning == True:
-                constants.logging.warn(f"Ignoring track circuit seperation request at line:{cls.COORDINATE.Y+1} col:{cls.COORDINATE.X+1} since its declared before track circuit and direction registration")
+    def _connect_track_circuits(cls, left_tc, right_tc):
+        if left_tc == None or right_tc == None:
             return None
 
-        cls.CURR_TRACK_CIRCUIT.ending_pos = Vec3(cls.COORDINATE.X * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * cls.COORDINATE.Y, 0)
-        cls.CURR_TRACK_CIRCUIT.ending_pos.x += constants.CHARACTER_TO_LENGTH
+        # adding a visual seperator (useful if everything is of single colour)
+        cls._create_visible_track_seperator(left_tc, right_tc)
 
-        # draw seperator on screen if settings allow it
-        if constants.SHOW_TRACK_CIRCUIT_SEPERATOR == True:
-            cls._draw_seperator_on_screen()
+        # updating connections
+        left_tc.connections['>'].append(right_tc.ID)
+        right_tc.connections['<'].append(left_tc.ID)
 
-        cls._end_curr_track_circuit()
+
+        # # code for vertifying the connections w.r.t directions
+        # # TODO :- should I remove this?
+        # pattern = left.direction + right.direction
+
+        # match pattern:
+        #     case '==':
+        #         left.connections['>'].append(right.ID)
+        #         right.connections['<'].append(left.ID)
+            
+        #     case '>=' | '=>' | '>>' : left.connections['>'].append(right.ID)
+        #     case '<=' | '=<' | '<<' : right.connections['<'].append(left.ID)
+        #     case '<>' | '><' : pass
+
 
 
     @classmethod
     def _end_curr_track_circuit(cls):
+        if cls.CURR_TRACK_CIRCUIT == None:
+            return None
 
-        # adding this track circuit to main shared database of track circuits
-        constants.Database.TRACK_CIRCUITS[cls.CURR_TRACK_CIRCUIT.ID] = cls.CURR_TRACK_CIRCUIT
-        
-        # finalize current object
-        cls.CURR_TRACK_CIRCUIT.finalize()
+        cls.CURR_TRACK_CIRCUIT.ending_pos = cls._get_position()
 
-        # updating class attributes
-        cls.PREV_CONNECTION = cls.CURR_TRACK_CIRCUIT
+        # adding curr track circuit to database
+        cls._add_to_database(cls.CURR_TRACK_CIRCUIT)
+
+        # resetting current track circuit variable
         cls.CURR_TRACK_CIRCUIT = None
-
-
 
 
 
@@ -144,222 +188,196 @@ class MapParser:
 
 
     @classmethod
-    def _create_new_signal(cls, character):
-        
-        # defining signal metadata
-        signal_details = constants.NUMBER_TO_SIGNAL[character]
-        signal_direction, signal_type = signal_details.split('-')
-
-        if signal_direction == 'right':
-            signal_position = Vec3(cls.COORDINATE.X * constants.CHARACTER_TO_LENGTH, (-constants.MAP_LINES_OFFSET * cls.COORDINATE.Y)  + constants.SIGNAL_OFFSET_FROM_TRACKS, 0)
-        else:
-            signal_position = Vec3(cls.COORDINATE.X * constants.CHARACTER_TO_LENGTH, (-constants.MAP_LINES_OFFSET * cls.COORDINATE.Y) - constants.SIGNAL_OFFSET_FROM_TRACKS, 0)
-        
-        
-        # Making a new signal
-        curr_signal = Signal()
-
-        curr_signal.ID = f"SI-{cls.COORDINATE.Y}-{cls.COORDINATE.X}"
-        curr_signal.parent_track_circuit_id = cls.CURR_TRACK_CIRCUIT.ID
-        curr_signal.direction = signal_direction
-        curr_signal.signal_type = signal_type
-        curr_signal.position = signal_position
-
-
-        return curr_signal
-
-
-    @classmethod
-    def _update_signal_infos(cls, signal_id, signal_direction, curr_signal):
-        # updating info in main database
-        constants.Database.SIGNALS[signal_id] = curr_signal
-
-        # updating info in current track circuit
-        cls.CURR_TRACK_CIRCUIT.signals[signal_direction].append(signal_id)
-
-
-    @classmethod
     def _add_new_signal(cls, character):
-
         if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.warn(f"Rejecting Signal at line:{cls.COORDINATE.Y+1} col:{cls.COORDINATE.X+1} since its declared before track circuit and direction registration")
+            constants.logging.warning(f"Signal at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
             return None
 
-        # making a new signal
-        curr_signal = cls._create_new_signal(character)
+        new_signal = cls._create_new_signal(character)
+        cls._add_to_track_circuit(new_signal)
+        cls._add_to_database(new_signal)
 
-        # update info of this signal everywhere
-        cls._update_signal_infos(curr_signal.ID, curr_signal.direction, curr_signal)
+
+
+    @classmethod
+    def _create_new_signal(cls, character):
+        direction, signal_type = constants.NUMBER_TO_SIGNAL[character].split('-')
+        position = cls._get_position()
+
+
+        match direction:
+            case '>' : position.y += constants.SIGNAL_OFFSET_FROM_TRACKS
+            case '<' : position.y -= constants.SIGNAL_OFFSET_FROM_TRACKS
+
+
+        new_signal = Signal(
+            ID = cls._get_id('SI'),
+            direction = direction,
+            signal_type = signal_type,
+            parent_track_circuit_id = cls.CURR_TRACK_CIRCUIT.ID,
+            position = position
+        )
+
+        return new_signal
+
+    
+    @classmethod
+    def _add_to_track_circuit(cls, new_signal):
+        match new_signal.direction:
+            case '>': cls.CURR_TRACK_CIRCUIT.signals['>'].append(new_signal.ID)
+            case '<': cls.CURR_TRACK_CIRCUIT.signals['<'].append(new_signal.ID)
 
 
 
 
     # ------------------------------ classmethods to update crossovers ------------------------------ #
 
+    @classmethod
+    def _start_new_crossover(cls, character):
+        if cls.CURR_TRACK_CIRCUIT == None:
+            constants.logging.warning(f"Crossover at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            return None
+        
+        # get end point of this crossover
+        ending_pos = cls._get_crossover_ending_pos(character)
+
+        if ending_pos == None:
+            constants.logging.debug(f"No ending for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}")
+            return None
+
+        # get ending track circuit id of this crossover
+        ending_track_circuit = cls._get_ending_track_circuit_id(ending_pos)
+
+        if ending_track_circuit == None:
+            constants.logging.debug(f"No valid track circuit was found for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}, ending at :- LINE:{ending_pos.Y + 1} COL:{ending_pos.X + 1}")
+            return None
+        
+        # making a new crossover
+        new_crossover = cls._create_new_crossover(character, ending_pos)
+
+        # updating ID for further use
+        new_crossover.ID += f"~{ending_pos.Y}-{ending_pos.X}"
+
+        # update crossover infos everywhere
+        cls._update_crossover_info(new_crossover, ending_track_circuit)
+
+
+
 
     @classmethod
-    def _get_crossover_ending_pos(cls, character, X_coordinate, Y_coordinate):
+    def _get_crossover_ending_pos(cls, crossover_type):
+        X_direction_adder = 0
 
-        for line_no in range(Y_coordinate-1, -1, -1):
-            if character == '/':
-                X_coordinate += 1
-            else:
-                X_coordinate -= 1
+        match crossover_type:
+            case '/': X_direction_adder = 1
+            case '\\': X_direction_adder = -1
 
-            if not (0 <= X_coordinate < len(cls.map_data[line_no])):
-                constants.logging.warn(f"Found no ending of crossover {character} at line:{Y_coordinate+1} col:{X_coordinate+1}, thus rejecting it")
-                break
+        return cls.__get_crossover_ending_pos(X_direction_adder, crossover_type)
+        
 
-            if cls.map_data[line_no][X_coordinate] == character:
-                try:
-                    if (cls.map_data[line_no][X_coordinate-1] != ' ') and (cls.map_data[line_no][X_coordinate+1] != ' '):
-                        ending_pos = Vec3(X_coordinate, line_no, 0)
-                        return ending_pos
-                except IndexError as e:
-                    constants.logging.warn(f"Rejecting crossover {character} ending at line:{line_no+1} col:{X_coordinate+1}. Please make sure that both side of the ending crossover (slash) on the railmap file is covered with any of -<>=+")
-                    break
-            else:
-                constants.logging.warn(f"Found no ending of crossover {character} at line:{Y_coordinate+1} col:{X_coordinate+1}, thus rejecting it")
-                break
+
+
+    @classmethod
+    def __get_crossover_ending_pos(cls, X_direction_adder, crossover_type):
+        line_number = cls.COORDINATES.Y
+        character_number = cls.COORDINATES.X
+
+        while line_number > 0:
+            character_number += X_direction_adder
+            line_number -= 1
+
+            if not (0 < character_number <= len(cls.MAP_DATA[line_number])-1):
+                return None
+
+            current_line = cls.MAP_DATA[line_number]
+
+            if not current_line[character_number] == crossover_type:
+                return None
+
+            if not current_line[character_number-1] == ' ':
+                return Vec2(character_number, line_number)
+
+
+
+    @classmethod
+    def _get_ending_track_circuit_id(cls, ending_pos):
+        line_number = ending_pos.Y
+        ending_line = cls.MAP_DATA[line_number]
+
+        character_number = ending_pos.X
+
+        while character_number >= 0:
+            character_number -= 1
+
+            if ending_line[character_number] in ('<', '>', '='):
+                track_id = f'TC-{line_number}-{character_number}'
+                return constants.Database.TRACK_CIRCUITS[track_id]
 
         return None
 
 
-
     @classmethod
-    def _get_crossover_ending_track_circuit(cls, ending_pos):
-        counter = 1
-        Y_coordinate = int(ending_pos.y)
-        for index in range(int(ending_pos.x), -1, -1):
-            if cls.map_data[Y_coordinate][index] == '+':
-                counter += 1
+    def _create_new_crossover(cls, character, ending_pos):
+        new_crossover = Crossover(
+            ID = cls._get_id('CO'),
+            crossover_type = character,
+            starting_pos = cls._get_position(),
+            ending_pos = cls._get_position(ending_pos.X, ending_pos.Y),
+            direction = '='
+        )
 
-        return f"TC-{Y_coordinate}-{counter}"
-
-
-    @classmethod
-    def _create_new_crossover(cls, character):
-        ending_pos = cls._get_crossover_ending_pos(character, cls.COORDINATE.X, cls.COORDINATE.Y)
-        
-        if ending_pos == None:
-            return None
-
-        ending_track_circuit_id = cls._get_crossover_ending_track_circuit(ending_pos)
-
-        if ending_track_circuit_id == None:
-            constants.logging.warn(f"Rejecting new crossover request at line:{cls.COORDINATE.Y+1} col:{cls.COORDINATE.X+1} since could not find its ending track circuit for ending position = {ending_pos}")
-            return None
-        
-        curr_crossover = Crossover()
-        curr_crossover.ID = f"CO-{cls.COORDINATE.Y}-{cls.COORDINATE.X}"
-        curr_crossover.direction = "forward" if character == '/' else "backward"
-        curr_crossover.starting_pos = Vec3(cls.COORDINATE.X * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * cls.COORDINATE.Y, 0)
-
-        ending_pos.x *= constants.CHARACTER_TO_LENGTH
-        ending_pos.y *= -constants.MAP_LINES_OFFSET
-
-        curr_crossover.ending_pos = ending_pos
-
-        if curr_crossover.direction == 'forward':
-            curr_crossover.connections['right'].append(ending_track_circuit_id)
-            curr_crossover.connections['left'].append(cls.CURR_TRACK_CIRCUIT.ID)
-        else:
-            curr_crossover.connections['left'].append(cls.CURR_TRACK_CIRCUIT.ID)
-            curr_crossover.connections['right'].append(ending_track_circuit_id)
-
-
-        curr_crossover.connecting_track_circuits = [cls.CURR_TRACK_CIRCUIT.ID, ending_track_circuit_id]
-
-        return curr_crossover
+        return new_crossover
 
 
     @classmethod
-    def _update_crossover_infos(cls, curr_crossover):
-        # updating crossover object in database
-        constants.Database.CROSSOVERS[curr_crossover.ID] = curr_crossover
+    def _update_crossover_info(cls, new_crossover, ending_track_circuit):
 
-        # updating crossover info to track circuits
-        starting_track_circuit = cls.CURR_TRACK_CIRCUIT
-        ending_track_circuit_id = curr_crossover.connecting_track_circuits[1]
-        ending_track_circuit = constants.Database.TRACK_CIRCUITS[ending_track_circuit_id]
+        # adding crossover to database
+        cls._add_to_database(new_crossover)
 
-        if curr_crossover.direction == 'forward':
-            starting_track_circuit.connections['right'].append(curr_crossover.ID)
-            ending_track_circuit.connections['left'].append(curr_crossover.ID)
+        # updating connecting track circuits
+        new_crossover.connecting_track_circuits = [cls.CURR_TRACK_CIRCUIT.ID, ending_track_circuit.ID]
 
-        else:
-            starting_track_circuit.connections['left'].append(curr_crossover.ID)
-            ending_track_circuit.connections['right'].append(curr_crossover.ID)
+        # updating connections
+        match new_crossover.crossover_type:
+            case '/':
+                cls.CURR_TRACK_CIRCUIT.connections['>'].append(new_crossover.ID)
+                ending_track_circuit.connections['<'].append(new_crossover.ID)
+                new_crossover.connections = {'<': [cls.CURR_TRACK_CIRCUIT.ID], '>': [ending_track_circuit.ID]}
 
-
-
-    @classmethod
-    def _add_new_crossover(cls, character):
-
-        # all track crossovers below line 0 will parse 0 as well... bottom-to-top
-        if cls.COORDINATE.Y == 0:
-            return None
-
-        if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.warn(f"Rejecting new crossover request at line:{cls.COORDINATE.Y+1} col:{cls.COORDINATE.X+1} since its declared before track circuit and direction registration")
-            return None
-
-        # creating new crossover
-        curr_crossover = cls._create_new_crossover(character)
-
-        if curr_crossover == None:
-            return None
-
-        # updating crossover infos across everywhere
-        cls._update_crossover_infos(curr_crossover)
-
+            case '\\':
+                cls.CURR_TRACK_CIRCUIT.connections['<'].append(new_crossover.ID)
+                ending_track_circuit.connections['>'].append(new_crossover.ID)
+                new_crossover.connections = {'>': [cls.CURR_TRACK_CIRCUIT.ID], '<': [ending_track_circuit.ID]}
 
 
 
     # ------------------------------- classmethods to update stations ------------------------------- #
 
-    @classmethod
-    def _create_new_station(cls, character):
-        curr_station = Station()
-        curr_station.ID = f"ST-{character}-{cls.CURR_TRACK_CIRCUIT.ID}"
-        curr_station.main_station_id = character
-        curr_station.parent_track_circuit_id = cls.CURR_TRACK_CIRCUIT.ID
-
-        return curr_station
-
 
     @classmethod
-    def _update_station_infos(cls, curr_station):
-        # adding current hault to database
-        constants.Database.HAULTS[curr_station.ID] = curr_station
-
-        # adding current hault to a station
-        if constants.Database.STATIONS.get(curr_station.main_station_id, False):
-            constants.Database.STATIONS[curr_station.main_station_id].append(curr_station.ID)
-        else:
-            constants.Database.STATIONS[curr_station.main_station_id] = [curr_station.ID]
-
-
-    @classmethod
-    def _add_new_station(cls, character):
-        
+    def _set_new_hault(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.warn(f"Rejecting hault (station) request at line:{cls.COORDINATE.Y+1} col:{cls.COORDINATE.X+1} since its declared before track circuit and direction registration")
+            constants.logging.warning(f"Hault/Platform at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
             return None
 
+        # setting curr track circuit as a hault
+        hault = Hault(cls.CURR_TRACK_CIRCUIT.ID)
 
-        if cls.CURR_TRACK_CIRCUIT.hault_id != None:
-            constants.logging.warn(f"Ignoring hault (station) request at line:{cls.COORDINATE.Y+1} col:{cls.COORDINATE.X+1} since the track circuit is already a haulting track")
-            return None
+        # updating database seperately
+        cls._update_database_infos(hault, character)
 
-        #creating new station
-        curr_station = cls._create_new_station(character)
 
-        # registering track circuit as a haulting section
-        cls.CURR_TRACK_CIRCUIT.hault_id = curr_station.ID
 
-        # update station infos
-        cls._update_station_infos(curr_station)
+    @classmethod
+    def _update_database_infos(cls, hault, station_code):
+        # update hault object
+        constants.Database.HAULTS[cls.CURR_TRACK_CIRCUIT.ID] = hault
+
+        # updating stations info
+        match constants.Database.STATIONS.get(station_code, False):
+            case False: constants.Database.STATIONS[station_code] = {cls.CURR_TRACK_CIRCUIT.ID}
+            case _: constants.Database.STATIONS[station_code].add(cls.CURR_TRACK_CIRCUIT.ID)
 
 
 

@@ -11,17 +11,23 @@ class Signal(Entity):
         self.position = None
         self.signal_type = None
 
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
+
+
+    def finalize(self):
+        self.draw()
+
+
+    def draw(self):
         self.model = 'circle'
         self.color = color.red
-
-        if constants.SIGNAL_SIZE == None:
-            self.scale = len(self.type) / 40
-        else:
-            self.scale = constants.SIGNAL_SIZE
+        self.scale = constants.SIGNAL_SIZE
 
 
     def __str__(self):
         return f'''
+        I Am A Signal
         ID = {self.ID}, position = {self.position}, type = {self.signal_type},
         direction = {self.direction}, parent track circuit ID = {self.parent_track_circuit_id}, color = {self.color}
         '''
