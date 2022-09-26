@@ -1,5 +1,5 @@
 from ursina import Entity, color
-from SwaRail import constants
+from SwaRail.Frontend import constants
 
 class Signal(Entity):
     def __init__(self, **kwargs):

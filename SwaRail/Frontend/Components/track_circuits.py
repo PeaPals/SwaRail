@@ -1,5 +1,5 @@
 from ursina import Entity, Mesh, Vec3, Text
-from SwaRail import constants
+from SwaRail.Frontend import constants
 
 class TrackCircuit(Entity):
     def __init__(self, **kwargs):

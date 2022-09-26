@@ -1,8 +1,9 @@
-from SwaRail import constants
+from SwaRail.Frontend import constants
 from SwaRail.Frontend.Components import Crossover, Seperator, Signal, Hault, TrackCircuit
 from ursina import Vec3
 from dataclasses import dataclass
 from SwaRail.Frontend.MapHandler.postparser import PostParser
+from SwaRail.database import Database
 
 
 # MAJOR TODO :- Make Command Panel
@@ -100,13 +101,19 @@ class MapParser:
 
     @classmethod
     def _add_to_database(cls, component):
+        # TODO :- make a feature inside database class such that writing
+        # Database[component.ID] = component will automatically insert it to the right place
+        # and same for retrieval of data
+        # paste this code snipet in database class
+
+
         id_prefix = component.ID[:2]
 
         match id_prefix:
-            case 'TC' : constants.Database.TRACK_CIRCUITS[component.ID] = component
-            case 'SI' : constants.Database.SIGNALS[component.ID] = component
-            case 'CO' : constants.Database.CROSSOVERS[component.ID] = component
-            case 'SP' : constants.Database.SEPERATORS[component.ID] = component
+            case 'TC' : Database.TRACK_CIRCUITS[component.ID] = component
+            case 'SI' : Database.SIGNALS[component.ID] = component
+            case 'CO' : Database.CROSSOVERS[component.ID] = component
+            case 'SP' : Database.SEPERATORS[component.ID] = component
 
 
     @classmethod
@@ -298,7 +305,7 @@ class MapParser:
 
             if ending_line[character_number] in ('<', '>', '='):
                 track_id = f'TC-{line_number}-{character_number}'
-                return constants.Database.TRACK_CIRCUITS[track_id]
+                return Database.TRACK_CIRCUITS[track_id]
 
         return None
 
@@ -357,9 +364,9 @@ class MapParser:
     @classmethod
     def _update_database_infos(cls, hault, station_code):
         # update hault object
-        constants.Database.HAULTS[cls.CURR_TRACK_CIRCUIT.ID] = hault
+        Database.HAULTS[cls.CURR_TRACK_CIRCUIT.ID] = hault
 
         # updating stations info
-        match constants.Database.STATIONS.get(station_code, False):
-            case False: constants.Database.STATIONS[station_code] = {cls.CURR_TRACK_CIRCUIT.ID}
-            case _: constants.Database.STATIONS[station_code].add(cls.CURR_TRACK_CIRCUIT.ID)
+        match Database.STATIONS.get(station_code, False):
+            case False: Database.STATIONS[station_code] = {cls.CURR_TRACK_CIRCUIT.ID}
+            case _: Database.STATIONS[station_code].add(cls.CURR_TRACK_CIRCUIT.ID)

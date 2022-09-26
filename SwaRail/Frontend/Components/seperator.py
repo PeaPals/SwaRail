@@ -1,5 +1,5 @@
 from ursina import Entity, Vec3
-from SwaRail import constants
+from SwaRail.Frontend import constants
 
 class Seperator(Entity):
     def __init__(self, **kwargs):

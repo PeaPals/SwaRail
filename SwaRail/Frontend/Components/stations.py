@@ -1,11 +1,16 @@
 from ursina import Entity, Vec3
-from SwaRail import constants
+from SwaRail.Frontend import constants
+from SwaRail.database import Database
+
 
 class Hault(Entity):
     def __init__(self, parent_track_circuit_id, **kwargs):
         super().__init__()
 
         self.parent_track_circuit_id = parent_track_circuit_id
+
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
 
 
     def finalize(self):
@@ -21,7 +26,7 @@ class Hault(Entity):
 
 
     def finalize_attributes(self):
-        track_circuit = constants.Database.TRACK_CIRCUITS[self.parent_track_circuit_id]
+        track_circuit = Database.TRACK_CIRCUITS[self.parent_track_circuit_id]
         
         self.position = (track_circuit.starting_pos + track_circuit.ending_pos) / 2
         self.position += Vec3(0, 0, 0.1)

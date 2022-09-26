@@ -1,6 +1,7 @@
-from ursina import Entity, Mesh, Vec3, Text
-from SwaRail import constants
+from ursina import Entity, Mesh, Text
+from SwaRail.Frontend import constants
 from SwaRail.Utilities import mathematical
+from SwaRail.database import Database
 
 class Crossover(Entity):
     def __init__(self, **kwargs):
@@ -56,8 +57,8 @@ class Crossover(Entity):
     def _get_connecting_track_circuits(self):
         track_circuit_1_id, track_circuit_2_id = self.connecting_track_circuits
 
-        track_circuit_1 = constants.Database.TRACK_CIRCUITS[track_circuit_1_id]
-        track_circuit_2 = constants.Database.TRACK_CIRCUITS[track_circuit_2_id]
+        track_circuit_1 = Database.TRACK_CIRCUITS[track_circuit_1_id]
+        track_circuit_2 = Database.TRACK_CIRCUITS[track_circuit_2_id]
 
         return track_circuit_1, track_circuit_2
 

@@ -1,4 +1,5 @@
-from SwaRail import constants
+from SwaRail.Frontend import constants
+from SwaRail.database import Database
 
 class PostParser():
 
@@ -14,7 +15,7 @@ class PostParser():
         cls._generate_junctions()
 
         # final summary
-        # cls.summary()
+        cls.summary()
 
 
     # ------------------------------- classmethods for global use ------------------------------- #
@@ -23,7 +24,7 @@ class PostParser():
     @classmethod
     def summary(cls):
         # logging a summary of database
-        constants.logging.debug(constants.Database.summary())
+        constants.logging.debug(Database.summary())
 
 
     # ------------------------------- classmethods to update text labels ------------------------------- #
@@ -34,7 +35,7 @@ class PostParser():
     @classmethod
     def _add_text_labels(cls):
         for field in constants.FIELD_TO_LABEL:
-            for component in getattr(constants.Database, field).values():
+            for component in getattr(Database, field).values():
                 component.show_label()
 
 
@@ -47,27 +48,27 @@ class PostParser():
         # TODO :- clean this code by using only 2 nested loops and __getattr__ function of Database class
 
         # finalize all track circuit
-        for id, track_circuit in constants.Database.TRACK_CIRCUITS.items():
+        for id, track_circuit in Database.TRACK_CIRCUITS.items():
             track_circuit.finalize()
             # print(id, track_circuit)
 
         # finalize all haults
-        for id, hault in constants.Database.HAULTS.items():
+        for id, hault in Database.HAULTS.items():
             hault.finalize()
             # print(id, hault)
 
         # finalize all signals
-        for id, signal in constants.Database.SIGNALS.items():
+        for id, signal in Database.SIGNALS.items():
             signal.finalize()
             # print(id, signal)
 
         # finalize all crossovers
-        for id, crossover in constants.Database.CROSSOVERS.items():
+        for id, crossover in Database.CROSSOVERS.items():
             crossover.finalize()
             # print(id, crossover)
 
         # finalizing all seperators
-        for id, seperator in constants.Database.SEPERATORS.items():
+        for id, seperator in Database.SEPERATORS.items():
             seperator.finalize()
             # print(id, seperator)
 

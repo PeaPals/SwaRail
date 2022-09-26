@@ -1,5 +1,5 @@
 from ursina import held_keys, camera, time, mouse, Vec3
-from SwaRail import constants
+from SwaRail.Frontend import constants
 
 
 APPLICATION_IS_PAUSED = False

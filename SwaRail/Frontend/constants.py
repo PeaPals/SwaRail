@@ -1,6 +1,6 @@
 from ursina import color, Vec3, Text
 import logging
-from SwaRail.Utilities.database_handler import Database
+from SwaRail.database import Database
 
 
 # TODO :- set all colours using rgba values if colors not present in default colors of ursina
