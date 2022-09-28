@@ -8,9 +8,8 @@ from SwaRail.database import Database
 
 # MAJOR TODO :- Make Command Panel
 
-# MAJOR TODO :- Make a track_maker which will merge continous track circuit to make a track
-# to reduce complexity by many folds on backend and to also increase chances of train fitting
-# in a particular track without disturbing the network
+# Major TODO :- insert a special token @ to show connection between two different sections.
+# It will represent the area connected by Automatic Block Signalling.
 
 
 @dataclass
@@ -28,10 +27,7 @@ class MapParser:
 
     @classmethod
     def parse(cls, map_name):
-        # parsing map
         cls._parse(map_name)
-
-        # parsing done... now post parsing operation begins
         PostParser.start_postparsing_operations()
 
 
@@ -44,7 +40,6 @@ class MapParser:
 
         # iterating through each line and parsing it
         for line_no, line in enumerate(cls.MAP_DATA):
-            # setting Y_coordinate and then parsing current line
             cls.COORDINATES.Y = line_no
             cls._parse_line(line)
 
@@ -104,16 +99,7 @@ class MapParser:
         # TODO :- make a feature inside database class such that writing
         # Database[component.ID] = component will automatically insert it to the right place
         # and same for retrieval of data
-        # paste this code snipet in database class
-
-
-        id_prefix = component.ID[:2]
-
-        match id_prefix:
-            case 'TC' : Database.TRACK_CIRCUITS[component.ID] = component
-            case 'SI' : Database.SIGNALS[component.ID] = component
-            case 'CO' : Database.CROSSOVERS[component.ID] = component
-            case 'SP' : Database.SEPERATORS[component.ID] = component
+        Database.add_component(component)
 
 
     @classmethod

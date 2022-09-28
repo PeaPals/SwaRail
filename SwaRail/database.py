@@ -23,6 +23,8 @@ class Database:
     # crossovers = {}
     # seperators = {}
 
+
+
     @classmethod
     def reset_database(cls):
         cls.TRACKS = {}
@@ -32,6 +34,26 @@ class Database:
         cls.HAULTS = {}
         cls.CROSSOVERS = {}
         cls.SEPERATORS = {}
+
+
+    @classmethod
+    def add_component(cls, component):
+        id_prefix = component.ID[:2]
+
+        match id_prefix:
+            case 'TC' : cls.TRACK_CIRCUITS[component.ID] = component
+            case 'SI' : cls.SIGNALS[component.ID] = component
+            case 'CO' : cls.CROSSOVERS[component.ID] = component
+            case 'SP' : cls.SEPERATORS[component.ID] = component
+
+
+    @classmethod
+    def get_component(cls, component_id):
+        match component_id:
+            case 'TC' : return cls.TRACK_CIRCUITS[component_id]
+            # case 'SI' : cls.SIGNALS[component.ID] = component
+            # case 'CO' : cls.CROSSOVERS[component.ID] = component
+            # case 'SP' : cls.SEPERATORS[component.ID] = component
 
 
     @classmethod
