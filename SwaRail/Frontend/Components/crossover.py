@@ -8,7 +8,6 @@ class Crossover(Entity):
         super().__init__()
 
         self.ID = None
-        self.connections = {'<': [], '>': []}
         self.connecting_track_circuits = []
         self.crossover_type = None
         self.starting_pos = None
@@ -24,7 +23,7 @@ class Crossover(Entity):
 
     def finalize(self):
         # order is important
-        self.check_crossover_validity()
+        # self.check_crossover_validity() TODO TODO
         self.finalize_attributes()
         self.draw()
 
@@ -57,8 +56,8 @@ class Crossover(Entity):
     def _get_connecting_track_circuits(self):
         track_circuit_1_id, track_circuit_2_id = self.connecting_track_circuits
 
-        track_circuit_1 = Database.TRACK_CIRCUITS[track_circuit_1_id]
-        track_circuit_2 = Database.TRACK_CIRCUITS[track_circuit_2_id]
+        track_circuit_1 = Database.get_component(track_circuit_1_id)
+        track_circuit_2 = Database.get_component(track_circuit_2_id)
 
         return track_circuit_1, track_circuit_2
 

@@ -1,7 +1,5 @@
 from ursina import color, Vec3, Text
 import logging
-from SwaRail.database import Database
-
 
 # TODO :- set all colours using rgba values if colors not present in default colors of ursina
 
@@ -14,6 +12,27 @@ logging.basicConfig(format=_logging_format, level=logging.NOTSET)
 
 
 # print(color.color_names)
+
+train_colors = [
+    color.dark_gray,
+    color.orange,
+    color.yellow,
+    color.lime,
+    color.green,
+    color.turquoise,
+    color.cyan,
+    color.azure,
+    color.blue,
+    color.violet,
+    color.magenta,
+    color.pink,
+    color.brown,
+    color.olive,
+    color.peach,
+    color.gold,
+    color.salmon
+]
+
 colors = [
     color.white,
     color.smoke,
@@ -60,20 +79,20 @@ TRACK_CIRCUIT_THICKNESS = 4.5
 CHARACTER_TO_LENGTH = 0.3     # 0.3 = 30 m
 
 TRACK_CIRCUIT_COLOR = {
-    "=" : color.yellow,
-    ">" : color.pink,
-    "<" : color.azure
+    "=" : color.white,
+    ">" : color.white,
+    "<" : color.white
 }
 
 # track seperator constants
 SEPERATOR_SCALE = Vec3(0.1, 0.35, 1)
-SEPERATOR_COLOR = color.green         # TODO :- is track circuit visual seperator even required?
+SEPERATOR_COLOR = color.gray         # TODO :- is track circuit visual seperator even required?
 SHOW_TRACK_CIRCUIT_SEPERATOR = True   # TODO :- remove this maybe? just control visibility using color?
 
 
 # signal constants
 SIGNAL_OFFSET_FROM_TRACKS = 0.25
-SIGNAL_SIZE = 0.12
+SIGNAL_SIZE = 0.15
 
 NUMBER_TO_SIGNAL = {
     '0' : '>-YRYG',
@@ -92,10 +111,10 @@ NUMBER_TO_SIGNAL = {
 
 # station constants
 HAULT_WIDTH_FROM_TRACKS = 0.35
-HAULT_COLOR = color.dark_gray
+HAULT_COLOR = color.gray
 
 # crossover constants
-CROSSOVER_ACTIVE_COLOR = None
+CROSSOVER_ACTIVE_COLOR = color.white
 CROSSOVER_INACTIVE_COLOR = color.gray
 
 
@@ -106,7 +125,7 @@ CROSSOVER_INACTIVE_COLOR = color.gray
 Text.font = 'VeraMono.ttf'
 
 # declaring constants for text labels
-FIELD_TO_LABEL = ['TRACK_CIRCUITS'] # TODO :- add label for crossover
+FIELD_TO_LABEL = ['track_circuits'] # TODO :- add label for crossover
 
 TRACK_CIRCUIT_LABEL_COLOR = color.yellow
 TRACK_CIRCUIT_LABEL_SIZE = 7

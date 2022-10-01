@@ -1,3 +1,9 @@
+class State:
+    AVAILABLE = 0
+    BOOKED = 1
+    OCCUPIED = 2
+
+
 class Database:
 
 
@@ -15,56 +21,131 @@ class Database:
     #         del self.A[key]
 
 
-    # tracks = {}
-    # signals = {}
-    # track_circuits = {}
-    # stations = {}
-    # haults = {}
-    # crossovers = {}
-    # seperators = {}
+    # TODO :- make a feature inside database class such that writing
+    # Database[component.ID] = component will automatically insert it to the right place
+    # and same for retrieval of data
 
 
+    railmap : list[str] = None
+    
+    graph : dict[str, dict[str, list[str]]] = {}
+    state : dict[str, int] = {}
+    stations : dict[str, set[str]] = {}
+    all_signals : dict[str, dict[str, list[str]]] = {}
 
-    @classmethod
-    def reset_database(cls):
-        cls.TRACKS = {}
-        cls.SIGNALS = {}
-        cls.TRACK_CIRCUITS = {}
-        cls.STATIONS = {}
-        cls.HAULTS = {}
-        cls.CROSSOVERS = {}
-        cls.SEPERATORS = {}
+
+    components_mapping = {
+        "TC" : "track_circuits",
+        "SI" : "signals",
+        "CO" : "crossover",
+        "SP" : "seperators"
+    }
+
+
+    __references = {}
+
+
+    # --------------------------- classmethods for dealing with components --------------------------- #
 
 
     @classmethod
     def add_component(cls, component):
         id_prefix = component.ID[:2]
+        component_type = cls.components_mapping.get(id_prefix, False)
 
-        match id_prefix:
-            case 'TC' : cls.TRACK_CIRCUITS[component.ID] = component
-            case 'SI' : cls.SIGNALS[component.ID] = component
-            case 'CO' : cls.CROSSOVERS[component.ID] = component
-            case 'SP' : cls.SEPERATORS[component.ID] = component
+        if component_type:
+            getattr(cls, component_type).add(component.ID)
+            cls.__references[component.ID] = component
 
 
     @classmethod
     def get_component(cls, component_id):
-        match component_id:
-            case 'TC' : return cls.TRACK_CIRCUITS[component_id]
-            # case 'SI' : cls.SIGNALS[component.ID] = component
-            # case 'CO' : cls.CROSSOVERS[component.ID] = component
-            # case 'SP' : cls.SEPERATORS[component.ID] = component
+        return cls.__references.get(component_id, None)
+
+
+    @classmethod
+    def get_all_ids(cls, component_prefix):
+        component_name = cls.components_mapping.get(component_prefix, None)
+
+        match component_name:
+            case None: return set()
+            case _: return getattr(cls, component_name)
+
+
+    @classmethod
+    def get_neighbours(cls, id, direction):
+        component_connections = cls.graph.get(id, {'<': [], '>': []})
+        return component_connections[direction]
+
+
+    # ----------------------- classmethods for dealing with stations / haults ----------------------- #
+
+
+    @classmethod
+    def add_hault(cls, station_id, track_circuit_id):
+        all_platforms = cls.stations.get(station_id, [])
+        all_platforms.append(track_circuit_id)
+        cls.stations[station_id] = all_platforms
+
+
+    # ----------------------------- classmethods for dealing with graph ----------------------------- #
+
+
+    @classmethod
+    def register_graph_node(cls, component):
+        id_prefix = component.ID[:2]
+        
+        match id_prefix:
+            case 'TC' : cls.all_signals[component.ID] = {'>': [], '<' : []}
+
+        cls.graph[component.ID] = {'>': [], '<' : []}
+        cls.state[component.ID] = State.AVAILABLE
+
+
+
+    @classmethod
+    def add_graph_connection(cls, left_component, right_component):
+        cls.graph[left_component.ID]['>'].append(right_component.ID)
+        cls.graph[right_component.ID]['<'].append(left_component.ID)
+
+
+    @classmethod
+    def bind_signal_to_track_circuit(cls, track_circuit, signal):
+        cls.all_signals[track_circuit.ID][signal.direction].append(signal.ID)
+
+
+    # -------------------------------------- other classmethods -------------------------------------- #
+
+
+    @classmethod
+    def reset_database(cls):
+        for component_type in cls.components_mapping.values():
+            setattr(cls, component_type, set())
 
 
     @classmethod
     def summary(cls):
+        summary = ["Database Summary : "]
+        
+        for component_type in cls.components_mapping.values():
+            summary.append(f"\n{component_type} = {getattr(cls, component_type)}")
 
-        return f'''
-        TRACKS = {cls.TRACKS.keys()}\n
-        TRACK CIRCUITS = {cls.TRACK_CIRCUITS.keys()}\n
-        SIGNALS = {cls.SIGNALS.keys()}\n
-        STATIONS = {cls.STATIONS}\n
-        HAULTS = {cls.HAULTS.keys()}\n
-        CROSSOVERS = {cls.CROSSOVERS.keys()}\n
-        SEPERATORS = {cls.SEPERATORS.keys()}\n
-        '''
+        summary.append(f"\nStations : {cls.stations}")
+
+        # cls.printer() TODO :- remove this
+
+        return '\n'.join(summary)
+
+
+    # TODO :  remove this
+    @classmethod
+    def printer(cls):
+        
+        import pprint
+        print("Database connections : ")
+        print("\n\nGraph : ")
+        pprint.pprint(cls.graph)
+        # print(cls.graph)
+        print("\n\nSignals : ")
+        pprint.pprint(cls.all_signals)
+        # print(cls.all_signals)

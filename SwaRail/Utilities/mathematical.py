@@ -1,4 +1,14 @@
 import math
+from dataclasses import dataclass
+
+
+
+@dataclass
+class Vec2:
+    X : int
+    Y : int
+
+
 
 def coordinate_distance(coordinate_1, coordinate_2, vec3=False):
     if vec3 == True:
@@ -9,6 +19,7 @@ def coordinate_distance(coordinate_1, coordinate_2, vec3=False):
     return (
         (coordinate_2[0] - coordinate_1[0]) ** 2 + (coordinate_2[1] - coordinate_1[1]) ** 2
     ) ** 0.5
+
 
 
 def coordinate_slope(coordinate_1, coordinate_2, format="rad"):
