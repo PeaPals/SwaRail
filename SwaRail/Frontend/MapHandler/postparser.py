@@ -1,5 +1,6 @@
 from SwaRail.Frontend import constants
 from SwaRail.database import Database
+from SwaRail.Backend.Algorithms import connectivity_BFS
 
 # Major TODO :- use train numbers as a tooltip.
 # Bind those tooltip to the track circuit, on which the head of train is.
@@ -13,6 +14,8 @@ class PostParser():
         # visual stuff
         cls._finalize_all_components()
         cls._add_text_labels()
+        cls.set_deadends_color()
+        cls.set_carsheds_color()
 
         # validation stuff
         cls.validate_connections_directions()
@@ -25,8 +28,27 @@ class PostParser():
         # cls._generate_tracks()
         # cls._generate_junctions()
 
+        # generate connectivities
+        cls._generate_connectivities()
+
         # final summary
-        cls.summary()
+        # cls.summary()
+
+
+
+
+        
+        # TODO :- remove this
+
+        from SwaRail.Interface.backend_frontend import book_route
+        # print(*Database.connectivity, sep='\n')
+        # book_route(train_number="7")
+        # book_route(train_number="3")
+        # book_route(train_number="4")
+        # book_route(train_number="1")
+        # cls.summary()
+        book_route(train_number="8")
+        
 
 
     # ------------------------------- classmethods for global use ------------------------------- #
@@ -68,6 +90,7 @@ class PostParser():
         for track_circuit_id in Database.get_all_ids('TC'):
             cls._reorder(track_circuit_id)
 
+
     @classmethod
     def _get_index(cls, neighbours, track_circuit_id, crossover_id, crossover_direction):
         track_circuit_y_coord = track_circuit_id.split('-')[1]
@@ -81,6 +104,8 @@ class PostParser():
         for index, neighbour_id in enumerate(neighbours):
             neighbours_x_coord = cls._get_connections_sorting_key(track_circuit_y_coord, neighbour_id)
             if comparison(neighbours_x_coord, crossover_x_corrd): return index
+
+        return len(neighbours)
 
 
     @classmethod
@@ -133,6 +158,15 @@ class PostParser():
 
 
 
+    @classmethod
+    def _generate_connectivities(cls):
+        key_nodes = Database.get_all_haults()
+
+        for track_circuit_id in key_nodes:
+            for direction in ('>', '<'):
+                connectivity_BFS(track_circuit_id, direction, key_nodes)
+            
+
     # ------------------------------- classmethods to update visuals ------------------------------- #
 
 
@@ -149,6 +183,20 @@ class PostParser():
             for component_id in getattr(Database, field):
                 component = Database.get_component(component_id)
                 component.show_label()
+
+    @classmethod
+    def set_deadends_color(cls):
+        for deadend_track_circuit_id in Database.stations.get(constants.DEADEND_HAULT_CODE, []):
+            deadend_track_circuit = Database.get_component(deadend_track_circuit_id)
+            hault_object = deadend_track_circuit.hault_object
+            hault_object.set_color(constants.DEADEND_HAULT_COLOR)
+
+    @classmethod
+    def set_carsheds_color(cls):
+        for carshed_track_circuit_id in Database.stations.get(constants.CARSHED_HAULT_CODE, []):
+            carshed_track_circuit = Database.get_component(carshed_track_circuit_id)
+            hault_object = carshed_track_circuit.hault_object
+            hault_object.set_color(constants.CARSHED_HAULT_COLOR)
 
 
     # ------------------------------- classmethods to generate tracks ------------------------------- #

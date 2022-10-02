@@ -25,6 +25,9 @@ class Hault(Entity):
         self.model = 'quad'
         self.color = constants.HAULT_COLOR
 
+    def set_color(self, color):
+        self.color = color
+
 
     def finalize_attributes(self):
         

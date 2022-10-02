@@ -1,7 +1,7 @@
 from ursina import Entity, Mesh, Text
 from SwaRail.Frontend import constants
 from SwaRail.Utilities import mathematical
-from SwaRail.database import Database
+from SwaRail.database import Database, State
 
 class Crossover(Entity):
     def __init__(self, **kwargs):
@@ -61,6 +61,14 @@ class Crossover(Entity):
 
         return track_circuit_1, track_circuit_2
 
+
+    def book(self, color):
+        Database.state[self.ID] = State.BOOKED
+        self.set_color(color)
+
+
+    def set_color(self, color):
+        self.color = color
 
 
     def check_crossover_validity(self):

@@ -208,7 +208,7 @@ class MapParser:
     @classmethod
     def _start_new_crossover(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.warning(f"Crossover at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            constants.logging.debug(f"Crossover at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
             return None
         
         # get end point of this crossover

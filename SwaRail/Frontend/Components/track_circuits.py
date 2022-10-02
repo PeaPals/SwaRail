@@ -1,7 +1,7 @@
 from ursina import Entity, Mesh, Text
 from SwaRail.Frontend import constants
 from SwaRail.Frontend.Components.stations import Hault
-from SwaRail.database import Database
+from SwaRail.database import Database, State
 
 class TrackCircuit(Entity):
     def __init__(self, **kwargs):
@@ -89,6 +89,15 @@ class TrackCircuit(Entity):
             self._create_label()
 
         self.label.visible = True
+
+
+    def book(self, color):
+        Database.state[self.ID] = State.BOOKED
+        self.set_color(color)
+
+
+    def set_color(self, color):
+        self.color = color
 
 
     def __str__(self):

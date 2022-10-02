@@ -1,3 +1,6 @@
+from ursina import color
+import itertools
+
 class State:
     AVAILABLE = 0
     BOOKED = 1
@@ -32,7 +35,18 @@ class Database:
     state : dict[str, int] = {}
     stations : dict[str, set[str]] = {}
     all_signals : dict[str, dict[str, list[str]]] = {}
+    connectivity = set()
 
+    usage = {}
+
+    train_colors = [
+        color.orange, color.yellow, color.lime, color.green, color.turquoise, color.cyan, color.azure,
+        color.blue, color.violet, color.magenta, color.pink, color.brown, color.olive, color.peach,
+        color.gold, color.salmon
+    ]
+
+    train_color_generator = itertools.cycle(train_colors)
+    
 
     components_mapping = {
         "TC" : "track_circuits",
@@ -74,8 +88,14 @@ class Database:
 
     @classmethod
     def get_neighbours(cls, id, direction):
+        details = id.split(":")
+        
+        match len(details):
+            case 1: id, index = id, 0
+            case 2: id, index = details[0], int(details[1])
+
         component_connections = cls.graph.get(id, {'<': [], '>': []})
-        return component_connections[direction]
+        return component_connections[direction][index:]
 
 
     # ----------------------- classmethods for dealing with stations / haults ----------------------- #
@@ -86,6 +106,16 @@ class Database:
         all_platforms = cls.stations.get(station_id, [])
         all_platforms.append(track_circuit_id)
         cls.stations[station_id] = all_platforms
+
+    @classmethod
+    def get_all_haults(cls):
+        all_haults = set()
+
+        for station_id in cls.stations.keys():
+            for track_circuit_id in cls.stations[station_id]:
+                all_haults.add(track_circuit_id)
+
+        return all_haults
 
 
     # ----------------------------- classmethods for dealing with graph ----------------------------- #
@@ -124,6 +154,11 @@ class Database:
 
 
     @classmethod
+    def get_next_train_color(cls):
+        return next(cls.train_color_generator)
+        
+
+    @classmethod
     def summary(cls):
         summary = ["Database Summary : "]
         
@@ -132,7 +167,7 @@ class Database:
 
         summary.append(f"\nStations : {cls.stations}")
 
-        # cls.printer() TODO :- remove this
+        cls.printer() # TODO :- remove this
 
         return '\n'.join(summary)
 
