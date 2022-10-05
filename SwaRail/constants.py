@@ -14,8 +14,10 @@ import logging
 # -------------------------------------- A* Search Constants --------------------------------------- #
 
 COST = {
-    '--': 0,
-    '-/': 1
+    'TC-TC': 1,
+    'TC-CO': 4,
+    'CO-TC': 4,
+    'CO-CO': 2,
 }
 
 
@@ -60,7 +62,7 @@ TRACK_CIRCUIT_COLOR = {
     "<" : color.white
 }
 
-HOTMAP_TRACK_CIRCUIT_COLOR = {   # TODO :- implement this in command panel
+DIRECTIONMAP_TRACK_CIRCUIT_COLOR = {   # TODO :- implement this in command panel
     "=" : color.pink,
     ">" : color.gold,
     "<" : color.azure
@@ -110,7 +112,7 @@ CROSSOVER_INACTIVE_COLOR = color.gray
 # --------------------------------- MapHandler:PostParser Constants --------------------------------- #
 
 # altering global text fields
-Text.font = 'VeraMono.ttf'
+# Text.font = 'VeraMono.ttf'
 
 # declaring constants for text labels
 FIELD_TO_LABEL = {'track_circuits'} # TODO :- add label for crossover
@@ -123,3 +125,10 @@ CROSSOVER_LABEL_COLOR = color.yellow
 CROSSOVER_LABEL_SIZE = 4
 CROSSOVER_BASE_OFFSET = Vec3(-0.5, -0.1, 0.2)
 CROSSOVER_BASE_ROTATION = Vec3(0, 0, 75)
+
+# ------------------------------------- Command Panel Constants ------------------------------------- #
+
+COMMAND_PANEL_TOGGLE_BUTTON = 'tab'
+COMMAND_PANEL_POSITION = Vec3(-0.55, -0.45, 0)
+COMMAND_PANEL_COLOR = color.black
+COMMAND_PANEL_CHARACTER_LIMIT = 70

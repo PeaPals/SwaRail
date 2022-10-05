@@ -6,10 +6,11 @@ class Simulator:
 
     @classmethod
     def initialize(cls):
-        cls.start_simulation()
+        pass
 
     @classmethod
     def start_simulation(cls):
+        cls.initialize()
         # print(*Database.connectivity, sep='\n')
         # book_route(train_number="7")
         # book_route(train_number="3")

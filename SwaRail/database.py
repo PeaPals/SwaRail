@@ -132,7 +132,7 @@ class Database:
     def reset_database(cls):
         for component_type in cls.components_mapping.values():
             setattr(cls, component_type, set())
-            cls.__railmap = None; cls.graph = {}; cls.connectivity = set(); cls.stations = {}
+            cls.__railmap = None; cls.graph = {}; cls.connectivity = set(); cls.stations = {}; cls.trains
 
 
     @classmethod

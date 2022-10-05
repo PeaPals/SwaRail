@@ -30,8 +30,12 @@ class MapParser:
     def _parse(cls, map_name):
         
         # reading file data
-        with open(constants.MAP_PATH(map_name), 'r') as map_file:
-            cls.MAP_DATA = map_file.read().split('\n') # TODO :- convert path to absolute path
+        try:
+            with open(constants.MAP_PATH(map_name), 'r') as map_file:
+                cls.MAP_DATA = map_file.read().split('\n') # TODO :- convert path to absolute path
+        except Exception:
+            logging.error(f"Map with name {map_name} couldn't be found... Please ensure that the name, place and extension of file is correct")
+            return None
 
         # saving map data to database for future use
         Database.set_railmap(cls.MAP_DATA)

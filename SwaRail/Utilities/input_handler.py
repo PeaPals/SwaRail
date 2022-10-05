@@ -1,11 +1,12 @@
 from ursina import held_keys, camera, time, application
+from SwaRail.Utilities.command_panel import CommandPanel
 from SwaRail import constants
 
 
-APPLICATION_IS_PAUSED = False
+# APPLICATION_IS_PAUSED = False
 
 def _check_keyboard_navigations():
-    
+
     # movement checks
     if held_keys['w']:
         camera.y += constants.CAMERA_NAVIGATION_SPEED * time.dt
@@ -20,10 +21,7 @@ def _check_keyboard_navigations():
         camera.x += constants.CAMERA_NAVIGATION_SPEED * time.dt
 
 
-    # zoom in and out checks # TODO :- NOT WORKING
-
-    # elif (held_keys['control']) and (held_keys['left control'] or held_keys['right control']):
-    #     pass
+    # zoom in and out checks
 
     elif  held_keys['z']:
         camera.z += constants.CAMERA_NAVIGATION_SPEED * time.dt
@@ -32,9 +30,14 @@ def _check_keyboard_navigations():
         camera.z -= constants.CAMERA_NAVIGATION_SPEED * time.dt
 
 
+    # toggle command panel
+
+    elif held_keys['c']:
+        CommandPanel.toggle_state()
+
     # pausing and playing application checks
 
-    elif held_keys['space']:
+    elif held_keys['p']:
         global APPLICATION_IS_PAUSED
         if APPLICATION_IS_PAUSED:
             APPLICATION_IS_PAUSED = False
@@ -64,6 +67,9 @@ def _check_mouse_navigations():
 
 
 def check_navigations():
+    if CommandPanel.active:
+        return None
+        
     _check_keyboard_navigations()
     # _check_mouse_navigations()
 

@@ -4,15 +4,17 @@ from SwaRail.Interface.backend_server import get_route_from_server
 
 
 def path_generator(route):
-    for i in range(1, len(route)):
+    i = 0
+
+    while i < len(route):
         path, direction = PathFinder.find_path(route[i-1], route[i])
 
-        if path:
-            _book_path(path, direction)
-            yield True
-        
-        else:
-            yield False
+        match len(path):
+            case 0: yield False
+            case _:
+                _book_path(path, direction)
+                i += 1
+                yield True
 
 
 def book_route(train_number):
@@ -34,6 +36,9 @@ def __book_track_circuits(path, path_color):
 
 
 def __book_signals(path, direction):
+    # TODO :- take care of partial signal booking... use indexing just like we did in postparser
+    # to find out from where signals should be booked
+    
     signal_sequence = []
 
     for track_circuit_id in path:

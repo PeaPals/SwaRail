@@ -75,6 +75,11 @@ class RouteProcessor:
         return new_current_layer
 
 
+    # TODO :- MAJOR BLUNDER :- I have only checked on way connectivity, which will not work
+    # I have to first filter from source to all the layers in forward direction (which I did)
+    # and I also have to filter the above filtered path once again in backward direction
+    # that is, from target to source this time
+
     @classmethod
     def _filter_connected_route(cls, route):
         new_path = [set(route[0])]

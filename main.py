@@ -6,14 +6,12 @@
 from SwaRail.config import SwaRailApplication
 from SwaRail.Utilities import input_handler
 from SwaRail.Utilities.timer import Timer
-from SwaRail.Frontend import MapHandler
-from SwaRail.Simulator import Simulator
+from SwaRail.Utilities.command_panel import CommandPanel
 
 
 # ---------------------------------------- INITIALIZATIONS ---------------------------------------- #
 
-MapHandler.load_map("Sonipat")
-Simulator.initialize()
+CommandPanel.initialize()
 
 def update():
     input_handler.check_navigations()
