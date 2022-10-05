@@ -1,9 +1,10 @@
-from SwaRail.Frontend import constants
+from SwaRail import constants
 from SwaRail.Frontend.Components import Crossover, Seperator, Signal, Hault, TrackCircuit
 from ursina import Vec3
 from SwaRail.Frontend.MapHandler.postparser import PostParser
 from SwaRail.database import Database
 from SwaRail.Utilities.mathematical import Vec2
+import logging
 
 
 # MAJOR TODO :- Make Command Panel
@@ -172,12 +173,17 @@ class MapParser:
     @classmethod
     def _add_new_signal(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.warning(f"Signal at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            logging.warning(f"Signal at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
             return None
 
         new_signal = cls._create_new_signal(character)
-        Database.bind_signal_to_track_circuit(cls.CURR_TRACK_CIRCUIT, new_signal)
+        cls._bind_signal_to_track_circuit(new_signal)
         cls._add_to_database(new_signal)
+
+
+    @classmethod
+    def _bind_signal_to_track_circuit(cls, signal):
+        cls.CURR_TRACK_CIRCUIT.signals[signal.direction].append(signal.ID)
 
 
     @classmethod
@@ -208,21 +214,21 @@ class MapParser:
     @classmethod
     def _start_new_crossover(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.debug(f"Crossover at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            logging.debug(f"Crossover at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
             return None
         
         # get end point of this crossover
         ending_pos = cls._get_crossover_ending_pos(character)
 
         if ending_pos == None:
-            constants.logging.debug(f"No ending for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}")
+            logging.debug(f"No ending for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}")
             return None
 
         # get ending track circuit id of this crossover
         ending_track_circuit = cls._get_ending_track_circuit_id(ending_pos)
 
         if ending_track_circuit == None:
-            constants.logging.debug(f"No valid track circuit was found for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}, ending at :- LINE:{ending_pos.Y + 1} COL:{ending_pos.X + 1}")
+            logging.debug(f"No valid track circuit was found for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}, ending at :- LINE:{ending_pos.Y + 1} COL:{ending_pos.X + 1}")
             return None
         
         # making a new crossover
@@ -320,16 +326,11 @@ class MapParser:
     # ------------------------------- classmethods to update stations ------------------------------- #
 
 
-    # TODO : dont make a hault seperately, make a new attribute in track circuit like "is_hault"
-    # so that we can easily keep track of throughput (no. of trains passing) of a
-    # track circuit in case it is a hault
-
-
     @classmethod
     def _set_new_hault(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            constants.logging.warning(f"Hault/Platform at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            logging.warning(f"Hault/Platform at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
             return None
 
         # adding current character to hault name
-        cls.CURR_TRACK_CIRCUIT.station_ID += character
+        cls.CURR_TRACK_CIRCUIT.station_id += character

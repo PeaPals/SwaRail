@@ -1,6 +1,6 @@
 from ursina import Text
 from datetime import datetime
-from SwaRail.Frontend import constants
+from SwaRail import constants
 
 class Timer:
     object = Text(

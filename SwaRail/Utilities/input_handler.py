@@ -1,5 +1,5 @@
-from ursina import held_keys, camera, time, mouse, Vec3
-from SwaRail.Frontend import constants
+from ursina import held_keys, camera, time, application
+from SwaRail import constants
 
 
 APPLICATION_IS_PAUSED = False
@@ -35,11 +35,14 @@ def _check_keyboard_navigations():
     # pausing and playing application checks
 
     elif held_keys['space']:
+        global APPLICATION_IS_PAUSED
         if APPLICATION_IS_PAUSED:
             APPLICATION_IS_PAUSED = False
+            application.resume()
             # TODO : resume application here and enable stuff like CLI if it isn't enabled automatically
         else:
             APPLICATION_IS_PAUSED = True
+            application.pause()
             # TODO : pause application here and disable stuff like CLI if it isn't diabled automatically
 
 

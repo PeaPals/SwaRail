@@ -7,45 +7,22 @@ class State:
     OCCUPIED = 2
 
 
+
 class Database:
-
-
-    # def __getitem__(self, key):
-    #     return self.A.get(key, "123")
-    
-    # def __class_getitem__(cls, key):
-    #     return cls.A.get(key, "123")
-
-    # def __setitem__(self, key, value):
-    #     self.A[key] = value
-
-    # def __delitem__(self, key):
-    #     if self.A.get(key, False):
-    #         del self.A[key]
-
-
-    # TODO :- make a feature inside database class such that writing
-    # Database[component.ID] = component will automatically insert it to the right place
-    # and same for retrieval of data
-
 
     railmap : list[str] = None
     
     graph : dict[str, dict[str, list[str]]] = {}
-    state : dict[str, int] = {}
-    stations : dict[str, set[str]] = {}
-    all_signals : dict[str, dict[str, list[str]]] = {}
     connectivity = set()
+    stations : dict[str, set[str]] = {}
+    trains = {}
 
-    usage = {}
 
-    train_colors = [
+    train_colors = itertools.cycle([
         color.orange, color.yellow, color.lime, color.green, color.turquoise, color.cyan, color.azure,
         color.blue, color.violet, color.magenta, color.pink, color.brown, color.olive, color.peach,
         color.gold, color.salmon
-    ]
-
-    train_color_generator = itertools.cycle(train_colors)
+    ])
     
 
     components_mapping = {
@@ -107,6 +84,7 @@ class Database:
         all_platforms.append(track_circuit_id)
         cls.stations[station_id] = all_platforms
 
+
     @classmethod
     def get_all_haults(cls):
         all_haults = set()
@@ -123,25 +101,13 @@ class Database:
 
     @classmethod
     def register_graph_node(cls, component):
-        id_prefix = component.ID[:2]
-        
-        match id_prefix:
-            case 'TC' : cls.all_signals[component.ID] = {'>': [], '<' : []}
-
         cls.graph[component.ID] = {'>': [], '<' : []}
-        cls.state[component.ID] = State.AVAILABLE
-
 
 
     @classmethod
     def add_graph_connection(cls, left_component, right_component):
         cls.graph[left_component.ID]['>'].append(right_component.ID)
         cls.graph[right_component.ID]['<'].append(left_component.ID)
-
-
-    @classmethod
-    def bind_signal_to_track_circuit(cls, track_circuit, signal):
-        cls.all_signals[track_circuit.ID][signal.direction].append(signal.ID)
 
 
     # -------------------------------------- other classmethods -------------------------------------- #
@@ -151,11 +117,12 @@ class Database:
     def reset_database(cls):
         for component_type in cls.components_mapping.values():
             setattr(cls, component_type, set())
+            cls.railmap = None; cls.graph = {}; cls.connectivity = set(); cls.stations = {}
 
 
     @classmethod
     def get_next_train_color(cls):
-        return next(cls.train_color_generator)
+        return next(cls.train_colors)
         
 
     @classmethod
@@ -181,6 +148,3 @@ class Database:
         print("\n\nGraph : ")
         pprint.pprint(cls.graph)
         # print(cls.graph)
-        print("\n\nSignals : ")
-        pprint.pprint(cls.all_signals)
-        # print(cls.all_signals)

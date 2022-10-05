@@ -1,10 +1,10 @@
-from SwaRail.Frontend import constants
+from SwaRail import constants
 from SwaRail.database import Database
 from SwaRail.Backend.Algorithms import connectivity_BFS
+import logging
 
 # Major TODO :- use train numbers as a tooltip.
 # Bind those tooltip to the track circuit, on which the head of train is.
-
 
 class PostParser():
 
@@ -14,8 +14,6 @@ class PostParser():
         # visual stuff
         cls._finalize_all_components()
         cls._add_text_labels()
-        cls.set_deadends_color()
-        cls.set_carsheds_color()
 
         # validation stuff
         cls.validate_connections_directions()
@@ -24,10 +22,6 @@ class PostParser():
         # altering graph for partial neighbour use
         cls._add_indexing_to_crossovers()
 
-        # generating optimized database to be used by backend
-        # cls._generate_tracks()
-        # cls._generate_junctions()
-
         # generate connectivities
         cls._generate_connectivities()
 
@@ -35,28 +29,12 @@ class PostParser():
         # cls.summary()
 
 
-
-
-        
-        # TODO :- remove this
-
-        from SwaRail.Interface.backend_frontend import book_route
-        # print(*Database.connectivity, sep='\n')
-        # book_route(train_number="7")
-        # book_route(train_number="3")
-        # book_route(train_number="4")
-        # book_route(train_number="1")
-        # cls.summary()
-        book_route(train_number="8")
-        
-
-
     # ------------------------------- classmethods for global use ------------------------------- #
 
 
     @classmethod
     def summary(cls):
-        constants.logging.debug(Database.summary())
+        logging.debug(Database.summary())
 
 
     # ------------------------------- classmethods to update graphs ------------------------------- #
@@ -72,7 +50,7 @@ class PostParser():
             if neighbour.direction in (component_direction, '='):
                 updated_neighbours.append(neighbour_id)
             else:
-                constants.logging.debug(f"{component_id} and {neighbour_id} found to have opposite directions : {component_direction} and {neighbour.direction} respectively, thus breaking the connection between them")
+                logging.debug(f"{component_id} and {neighbour_id} found to have opposite directions : {component_direction} and {neighbour.direction} respectively, thus breaking the connection between them")
 
         return updated_neighbours
 
@@ -147,9 +125,6 @@ class PostParser():
     def _reorder(cls, track_circuit_id):
         track_circuit_y_coordinate = track_circuit_id.split('-')[1]
 
-        # reversing the order of left direction signals
-        Database.all_signals[track_circuit_id]['<'].reverse()
-
         # the > direction connections should be sorted in increasing order of index
         Database.graph[track_circuit_id]['>'].sort(key=lambda id: cls._get_connections_sorting_key(track_circuit_y_coordinate, id))
         
@@ -183,20 +158,6 @@ class PostParser():
             for component_id in getattr(Database, field):
                 component = Database.get_component(component_id)
                 component.show_label()
-
-    @classmethod
-    def set_deadends_color(cls):
-        for deadend_track_circuit_id in Database.stations.get(constants.DEADEND_HAULT_CODE, []):
-            deadend_track_circuit = Database.get_component(deadend_track_circuit_id)
-            hault_object = deadend_track_circuit.hault_object
-            hault_object.set_color(constants.DEADEND_HAULT_COLOR)
-
-    @classmethod
-    def set_carsheds_color(cls):
-        for carshed_track_circuit_id in Database.stations.get(constants.CARSHED_HAULT_CODE, []):
-            carshed_track_circuit = Database.get_component(carshed_track_circuit_id)
-            hault_object = carshed_track_circuit.hault_object
-            hault_object.set_color(constants.CARSHED_HAULT_COLOR)
 
 
     # ------------------------------- classmethods to generate tracks ------------------------------- #

@@ -31,9 +31,9 @@ class RouteProcessor:
     @staticmethod
     def __get_platform_cost(platform_id):
         cost = 0
-        cost += Database.usage.get(platform_id, 0)            # platform should be least used
-        # cost += max(0, train.length - platform.length)  # platform should have enough length
-                                                          # to accomodate complete train
+        cost += Database.get_component(platform_id).usage             # platform should be least used
+        # cost += max(0, train.length - platform.length)              # platform should have enough length
+                                                                      # to accomodate complete train
 
         return cost
 
@@ -41,7 +41,7 @@ class RouteProcessor:
     @classmethod
     def _get_platform(cls, platforms):
         # the platform should not be occupied
-        platforms = filter(lambda platform : Database.state[platform] == State.AVAILABLE, platforms)
+        platforms = filter(lambda platform : Database.get_component(platform).state == State.AVAILABLE, platforms)
         choosen_platform = min(platforms, key = lambda platform_id : cls.__get_platform_cost(platform_id))
 
         return choosen_platform
@@ -95,20 +95,22 @@ class PathFinder:
     @classmethod
     def find_path(cls, source, target):
         path = A_star_search(source, target, direction = '>')
+        direction = '>'
 
         if not path:
             path = A_star_search(source, target, direction = '<')
+            direction = '<'
 
         if path and cls.validate_path(path):
-            return path
+            return path, direction
         
-        return []
+        return False, False
 
 
     @staticmethod
     def validate_path(path):
         for node_id in path:
-            if Database.state[node_id] != State.AVAILABLE:
+            if Database.get_component(node_id).state != State.AVAILABLE:
                 return False
 
         return True

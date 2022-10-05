@@ -5,6 +5,7 @@
 from SwaRail.Backend.Algorithms import PriorityQueue
 from SwaRail.database import Database, State
 from SwaRail.Utilities import mathematical
+from SwaRail import constants
 
 # TODO :- optimize heuristics such that target does not keeps getting computed again and again
 def heuristics(current_id, target_id):
@@ -19,16 +20,14 @@ def heuristics(current_id, target_id):
     current_mid_pos = (current.starting_pos + current.ending_pos) / 2
     target_mid_pos = (target.starting_pos + target.ending_pos) / 2
 
-    print(mathematical.coordinate_distance(current_mid_pos, target_mid_pos, vec3=True) / 10)
     return mathematical.coordinate_distance(current_mid_pos, target_mid_pos, vec3=True) / 10
 
 
 def cost(current_id, next_id):
+    current_id_prefix = current_id[:2]
     next_id_pefix = next_id[:2]
-
-    match next_id_pefix:
-        case 'TC' : return 1
-        case 'CO' : return 1
+    
+    return constants.COST[f"{current_id_prefix}-{next_id_pefix}"]
 
 
 
@@ -36,7 +35,6 @@ def A_star_search(source : str, target : str, direction : str):
     came_from, cost_so_far = _A_Star(source, target, direction)
     path = reconstruct_path(came_from, source, target)
 
-    print(path, came_from)
 
     return path
 
@@ -53,7 +51,6 @@ def _A_Star(source : str, target : str, direction : str):
 
     while not frontier.empty():
 
-        print(frontier.elements)
 
         current = frontier.get()
         current_id = current.split(':')[0]
@@ -64,7 +61,7 @@ def _A_Star(source : str, target : str, direction : str):
         for next in Database.get_neighbours(current, direction):
             next_id = next.split(':')[0]
 
-            if not Database.state[next_id] == State.AVAILABLE:
+            if not Database.get_component(next_id).state == State.AVAILABLE:
                 continue
 
             new_cost = cost_so_far[current_id] + cost(current_id, next_id)

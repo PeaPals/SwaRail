@@ -1,14 +1,40 @@
-from ursina import color, Vec3, Text, window
+from ursina import color, Vec3, Text
 import logging
 
 # TODO :- set all colours using rgba values if colors not present in default colors of ursina
 
+
+
+
+# -------------------------------------------------------------------------------------------------- #
+# --------------------------------------- Backend Constants ---------------------------------------- #
+# -------------------------------------------------------------------------------------------------- #
+
+
+# -------------------------------------- A* Search Constants --------------------------------------- #
+
+COST = {
+    'TC-TC': 1,
+    'TC-CO': 4,
+    'CO-TC': 4,
+    'CO-CO': 2
+}
+
+
+# -------------------------------------------------------------------------------------------------- #
+# --------------------------------------- Frontend Constants --------------------------------------- #
+# -------------------------------------------------------------------------------------------------- #
+
+
+
+
+
 # ------------------------------------- Shared Basic Constants ------------------------------------- #
 
 
-_logging_format = "%(asctime)s - %(name)s - %(levelname)s -> %(message)s [%(funcName)s:%(lineno)d]"
-_log_filename = "../application.log"
-logging.basicConfig(format=_logging_format, level=logging.WARNING)
+_LOGGING_FORMAT = "%(asctime)s - %(name)s - %(levelname)s -> %(message)s [%(funcName)s:%(lineno)d]"
+_LOG_FILENAME = "../SwaRail.log"
+logging.basicConfig(format=_LOGGING_FORMAT, level=logging.WARNING)#, filename=_LOG_FILENAME, filemode='w')
 
 
 # ------------------------------------- Config Constants ------------------------------------- #
@@ -69,11 +95,13 @@ NUMBER_TO_SIGNAL = {
 
 # station constants
 HAULT_WIDTH_FROM_TRACKS = 0.35
-HAULT_COLOR = color.gray
-DEADEND_HAULT_CODE = 'DEAD'
-DEADEND_HAULT_COLOR = color.red
-CARSHED_HAULT_CODE = 'SHED'
-CARSHED_HAULT_COLOR = color.magenta
+HAULT_OFFSET = Vec3(0, 0, 0.1)
+DEFAULT_HAULT_COLOR = color.gray
+HAULT_COLOR = {
+    '_' : color.gold,
+    'SHED': color.azure,
+    'DEAD': color.red
+}
 
 # crossover constants
 CROSSOVER_ACTIVE_COLOR = color.white
@@ -87,7 +115,7 @@ CROSSOVER_INACTIVE_COLOR = color.gray
 Text.font = 'VeraMono.ttf'
 
 # declaring constants for text labels
-FIELD_TO_LABEL = ['track_circuits'] # TODO :- add label for crossover
+FIELD_TO_LABEL = {'track_circuits'} # TODO :- add label for crossover
 
 TRACK_CIRCUIT_LABEL_COLOR = color.gold
 TRACK_CIRCUIT_LABEL_SIZE = 7

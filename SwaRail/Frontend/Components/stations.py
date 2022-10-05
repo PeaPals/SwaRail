@@ -1,12 +1,12 @@
 from ursina import Entity, Vec3
-from SwaRail.Frontend import constants
-from SwaRail.database import Database
+from SwaRail import constants
 
 
 class Hault(Entity):
-    def __init__(self, starting_pos, ending_pos, **kwargs):
+    def __init__(self, parent_id, starting_pos, ending_pos, **kwargs):
         super().__init__()
 
+        self.parent_tc_id : str = parent_id
         self.starting_pos = starting_pos
         self.ending_pos = ending_pos
 
@@ -18,32 +18,37 @@ class Hault(Entity):
         self.finalize_attributes()
         self.draw()
 
-        return self.color
-
 
     def draw(self):
         self.model = 'quad'
-        self.color = constants.HAULT_COLOR
+        self.set_initial_color()
+
+
+    def set_initial_color(self):
+        for ending_code in constants.HAULT_COLOR.keys():
+            if self.parent_tc_id.endswith(ending_code):
+                self.set_color(constants.HAULT_COLOR[ending_code])
+                return None
+
+        self.set_color(constants.DEFAULT_HAULT_COLOR)
+
 
     def set_color(self, color):
         self.color = color
 
 
-    def finalize_attributes(self):
-        
+    def finalize_attributes(self):        
         self.position = (self.starting_pos + self.ending_pos) / 2
-        self.position += Vec3(0, 0, 0.1)
+        self.position += constants.HAULT_OFFSET
 
         track_circuit_length = self.ending_pos.x - self.starting_pos.x
         self.scale = Vec3(track_circuit_length, constants.HAULT_WIDTH_FROM_TRACKS, 1)
-
-    
 
 
     def __str__(self):
         return f'''
         I Am A Hault
-        ID = {self.ID}, parent track circuit ID = {self.parent_track_circuit_id}, color = {self.color}
+        color = {self.color}
         '''
 
     def input(self, key):

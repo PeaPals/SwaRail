@@ -1,5 +1,5 @@
 from ursina import Entity, Vec3
-from SwaRail.Frontend import constants
+from SwaRail import constants
 
 class Seperator(Entity):
     def __init__(self, **kwargs):
@@ -11,12 +11,11 @@ class Seperator(Entity):
         for key, value in kwargs.items():
             self.__setattr__(key, value)
 
-    def finalize(self):
-        # adding little elivation to cover joints between track circuits
-        # TODO :- should  keep this above or below? i.e., z -= 0.1 or z += 0.1?
-        self.position.z += 0.1
 
+    def finalize(self):
+        self.position.z += 0.1
         self.draw()
+
 
     def draw(self):
         self.model = 'quad'
