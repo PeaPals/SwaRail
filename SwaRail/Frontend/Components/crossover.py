@@ -1,6 +1,6 @@
 from ursina import Entity, Mesh, Text
 from SwaRail import constants
-from SwaRail.Utilities import mathematical
+from SwaRail.Utilities.mathematical import Vec2
 from SwaRail.database import Database, State
 
 class Crossover(Entity):
@@ -73,8 +73,7 @@ class Crossover(Entity):
     def finalize_attributes(self):
         # setting length of crossover attributes
         # TODO :- is it even required?
-        self.length = mathematical.coordinate_distance(self.starting_pos, self.ending_pos, vec3=True)
-
+        self.length = round(Vec2.euclidian_distance(self.starting_pos, self.ending_pos) * 100) / 1000
 
         # MAJOR TODO :- remove this whole gradient color stuff and keep a simple colour
         # also delete _get_connecting_track_circuits function and connecting_track_circuit attribute

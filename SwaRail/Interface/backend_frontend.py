@@ -4,14 +4,11 @@ from SwaRail.Interface.backend_server import get_route_from_server
 
 
 def path_generator(route):
-    yield None
-
     for i in range(1, len(route)):
         path, direction = PathFinder.find_path(route[i-1], route[i])
 
         if path:
             _book_path(path, direction)
-            route.pop(0)
             yield True
         
         else:

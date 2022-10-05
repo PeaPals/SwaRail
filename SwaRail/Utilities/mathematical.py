@@ -1,31 +1,63 @@
 import math
-from dataclasses import dataclass
 
 
-
-@dataclass
 class Vec2:
-    X : int
-    Y : int
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __add__(self, coordinate):
+        return Vec2(self.x + coordinate.x, self.y + coordinate.y)
+
+    def __sub__(self, coordinate):
+        return Vec2(self.x - coordinate.x, self.y - coordinate.y)
+
+    def __truediv__(self, coordinate):
+        return Vec2(self.x / coordinate.x, self.y / coordinate.y)
+
+    def __floordiv__(self, coordinate):
+        return Vec2(self.x // coordinate.x, self.y // coordinate.y)
+
+    def __mul__(self, coordinate):
+        return Vec2(self.x * coordinate.x, self.y * coordinate.y)
+
+    def __pow__(self, power):
+        return Vec2(self.x ** power, self.y ** power)
+
+    def __abs__(self, coordinate):
+        return Vec2(abs(coordinate.x), abs(coordinate.y))
+
+    def __eq__(self, coordinate):
+        if not isinstance(coordinate, Vec2):
+            return False
+
+        return (self.x == coordinate.x) and (self.y == coordinate.y)
+
+    def __repr__(self):
+        return f"Vec2({self.x}, {self.y})"
+
+    def __hash__(self):
+        return hash(self.__repr__())
 
 
-
-def coordinate_distance(coordinate_1, coordinate_2, vec3=False):
-    if vec3 == True:
-        return (
-            (coordinate_2.x - coordinate_1.x) ** 2 + (coordinate_2.y - coordinate_1.y) ** 2
-        ) ** 0.5
-    
-    return (
-        (coordinate_2[0] - coordinate_1[0]) ** 2 + (coordinate_2[1] - coordinate_1[1]) ** 2
-    ) ** 0.5
+    @staticmethod
+    def euclidian_distance(coordinate_1, coordinate_2):
+        diff = (coordinate_2 - coordinate_1) ** 2
+        return (diff.x + diff.y) ** 0.5
 
 
+    @staticmethod
+    def manhaten_distance(coordinate_1, coordinate_2):
+        diff = abs(coordinate_2 - coordinate_1)
+        return diff.x + diff.y
 
-def coordinate_slope(coordinate_1, coordinate_2, format="rad"):
-    slope = (coordinate_2[1] - coordinate_1[1]) / (coordinate_2[0] - coordinate_1[0])
 
-    if format == "rad":
-        return math.degrees(math.atan(slope))
+    @staticmethod
+    def slope(coordinate_1, coordinate_2, format='rad'):
+        diff = coordinate_2 - coordinate_1
+        slope = diff.x / diff.y
 
-    return slope
+        match format:
+            case 'rad': math.degrees(math.atan(slope))
+            case 'deg': return slope

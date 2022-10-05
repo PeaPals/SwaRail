@@ -1,5 +1,6 @@
 from ursina import color
 import itertools
+import copy
 
 class State:
     AVAILABLE = 0
@@ -10,7 +11,7 @@ class State:
 
 class Database:
 
-    railmap : list[str] = None
+    __railmap : list[str] = None
     
     graph : dict[str, dict[str, list[str]]] = {}
     connectivity = set()
@@ -52,6 +53,20 @@ class Database:
     @classmethod
     def get_component(cls, component_id):
         return cls.__references.get(component_id, None)
+
+    @classmethod
+    def get_track_circuit_from_coordinates(cls, coordinates):
+        component_id = f"TC-{coordinates.Y}-{coordinates.X}"
+        return cls.__references.get(component_id, State.AVAILABLE)
+
+
+    @classmethod
+    def get_railmap(cls):
+        return cls.__railmap
+
+    @classmethod
+    def set_railmap(cls, railmap):
+        cls.__railmap = copy.deepcopy(railmap)
 
 
     @classmethod
@@ -117,7 +132,7 @@ class Database:
     def reset_database(cls):
         for component_type in cls.components_mapping.values():
             setattr(cls, component_type, set())
-            cls.railmap = None; cls.graph = {}; cls.connectivity = set(); cls.stations = {}
+            cls.__railmap = None; cls.graph = {}; cls.connectivity = set(); cls.stations = {}
 
 
     @classmethod

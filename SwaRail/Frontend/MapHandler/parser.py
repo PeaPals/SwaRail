@@ -34,11 +34,11 @@ class MapParser:
             cls.MAP_DATA = map_file.read().split('\n') # TODO :- convert path to absolute path
 
         # saving map data to database for future use
-        Database.railmap = cls.MAP_DATA
+        Database.set_railmap(cls.MAP_DATA)
 
         # iterating through each line and parsing it
         for line_no, line in enumerate(cls.MAP_DATA):
-            cls.COORDINATES.Y = line_no
+            cls.COORDINATES.y = line_no
             cls._parse_line(line)
 
 
@@ -49,7 +49,7 @@ class MapParser:
         for index, character in enumerate(line):
 
             # setting X_coordinate
-            cls.COORDINATES.X = index
+            cls.COORDINATES.x = index
             
             # starting check
             match character:
@@ -63,7 +63,7 @@ class MapParser:
 
         # add any remaining component to the database
         if cls.CURR_TRACK_CIRCUIT != None:
-            cls.COORDINATES.X += 1
+            cls.COORDINATES.x += 1
             cls._end_curr_track_circuit()
 
 
@@ -72,7 +72,7 @@ class MapParser:
 
     @classmethod
     def _get_id(cls, id_prefix, *args):
-        id = f"{id_prefix}-{cls.COORDINATES.Y}-{cls.COORDINATES.X}"
+        id = f"{id_prefix}-{cls.COORDINATES.y}-{cls.COORDINATES.x}"
 
         for arg in args:
             id += f'-{arg}'
@@ -90,10 +90,10 @@ class MapParser:
         # will give current position if X and Y are absent
 
         match X:
-            case None: X = cls.COORDINATES.X
+            case None: X = cls.COORDINATES.x
 
         match Y:
-            case None: Y = cls.COORDINATES.Y
+            case None: Y = cls.COORDINATES.y
         
         return Vec3(X * constants.CHARACTER_TO_LENGTH, -constants.MAP_LINES_OFFSET * Y, 0)
 
@@ -173,7 +173,7 @@ class MapParser:
     @classmethod
     def _add_new_signal(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            logging.warning(f"Signal at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            logging.warning(f"Signal at LINE:{cls.COORDINATES.y + 1} COL:{cls.COORDINATES.x + 1} has been ignored since it is declared before a track circuit")
             return None
 
         new_signal = cls._create_new_signal(character)
@@ -214,21 +214,21 @@ class MapParser:
     @classmethod
     def _start_new_crossover(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            logging.debug(f"Crossover at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            logging.debug(f"Crossover at LINE:{cls.COORDINATES.y + 1} COL:{cls.COORDINATES.x + 1} has been ignored since it is declared before a track circuit")
             return None
         
         # get end point of this crossover
         ending_pos = cls._get_crossover_ending_pos(character)
 
         if ending_pos == None:
-            logging.debug(f"No ending for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}")
+            logging.debug(f"No ending for crossover of type {character} at LINE:{cls.COORDINATES.y + 1} COL:{cls.COORDINATES.x + 1}")
             return None
 
         # get ending track circuit id of this crossover
         ending_track_circuit = cls._get_ending_track_circuit_id(ending_pos)
 
         if ending_track_circuit == None:
-            logging.debug(f"No valid track circuit was found for crossover of type {character} at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1}, ending at :- LINE:{ending_pos.Y + 1} COL:{ending_pos.X + 1}")
+            logging.debug(f"No valid track circuit was found for crossover of type {character} at LINE:{cls.COORDINATES.y + 1} COL:{cls.COORDINATES.x + 1}, ending at :- LINE:{ending_pos.y + 1} COL:{ending_pos.x + 1}")
             return None
         
         # making a new crossover
@@ -251,8 +251,8 @@ class MapParser:
 
     @classmethod
     def __get_crossover_ending_pos(cls, X_direction_adder, crossover_type):
-        line_number = cls.COORDINATES.Y
-        character_number = cls.COORDINATES.X
+        line_number = cls.COORDINATES.y
+        character_number = cls.COORDINATES.x
 
         while line_number > 0:
             character_number += X_direction_adder
@@ -272,10 +272,10 @@ class MapParser:
 
     @classmethod
     def _get_ending_track_circuit_id(cls, ending_pos):
-        line_number = ending_pos.Y
+        line_number = ending_pos.y
         ending_line = cls.MAP_DATA[line_number]
 
-        character_number = ending_pos.X
+        character_number = ending_pos.x
 
         while character_number >= 0:
             character_number -= 1
@@ -290,10 +290,10 @@ class MapParser:
     @classmethod
     def _create_new_crossover(cls, character, ending_pos):
         new_crossover = Crossover(
-            ID = cls._get_id('CO', ending_pos.Y, ending_pos.X),
+            ID = cls._get_id('CO', ending_pos.y, ending_pos.x),
             crossover_type = character,
             starting_pos = cls._get_position(),
-            ending_pos = cls._get_position(ending_pos.X, ending_pos.Y),
+            ending_pos = cls._get_position(ending_pos.x, ending_pos.y),
             direction = '='
         )
 
@@ -329,7 +329,7 @@ class MapParser:
     @classmethod
     def _set_new_hault(cls, character):
         if cls.CURR_TRACK_CIRCUIT == None:
-            logging.warning(f"Hault/Platform at LINE:{cls.COORDINATES.Y + 1} COL:{cls.COORDINATES.X + 1} has been ignored since it is declared before a track circuit")
+            logging.warning(f"Hault/Platform at LINE:{cls.COORDINATES.y + 1} COL:{cls.COORDINATES.x + 1} has been ignored since it is declared before a track circuit")
             return None
 
         # adding current character to hault name
