@@ -60,7 +60,15 @@ The next platform to reach is decided based on following conditions :-
 - The next platform should be the least used one till now, to avoid trains using platforms that are on main line
 - It should have enough length to accomodate train, if none of the platforms are long enough, then choose the one which can maximumly accomodate it , i.e., the platform with maximum track circuit length
 
-The route of platforms are choosen in a reverse satisfaction manner. That is platforms which are connected to one level later platforms... repeating this in a backward direction gives us possible platforms we should traverse to reach target.
+## Algorithm to choose a route going through all the stations (double-directed satisfaction)
+
+- find connectivity between all platforms using repetitive BFS over all platforms to all other platforms and find which platform is connected to which other platform in both directions
+- then lets say you have to go from Source to target or set of targets through some stations ( Source --> Station_1 --> Station_2 --> ....... --> Station_n --> {target} )
+- start from target or set of targets ({target}) and in a reverse order keep finding connectivity of target to station_n platforms and from those platforms to station_(n-1) platforms and so on upto set of source platforms
+- this will given a subgraph of original graph with connection between set of targets and set of source
+- repeat the process with the single source we have towards the direction of target (i.e., now in reverse direction from previous search)
+- this will again filter our subgraph to a sub-subgraph where we have connectivity from single source to one or more targets
+- now follow this subgraph by finding shortest path from station to station and thus the route is formed.
 
 
 ## How does route of a train is booked?
