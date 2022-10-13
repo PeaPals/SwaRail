@@ -15,7 +15,7 @@ CommandPanel.initialize()
 
 def update():
     input_handler.check_navigations()
-    # Timer.update_time()  # TODO :- uncomment this when doing simulation
+    Timer.update_time()  # TODO :- uncomment this when doing simulation
 
 
 SwaRailApplication.run()

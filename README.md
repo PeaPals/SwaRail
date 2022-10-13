@@ -3,6 +3,13 @@
 The theme of this project is Automatic Traffic Control (Both Centralized and Decentralized).
 
 
+### How to run :-
+
+1. run `py main.py` or `python main.py` in the project directory
+2. press `c` to toggle command panel
+3. type `loadmap <map_name>`, eg :- `loadmap sonipat`
+
+
 ## How security is handled in this project
 
 The key focus of security in this project is on all the lives of people that travel in trains everyday. To make sure this system runs without any security vulnerabilities, we use the following protocols.
