@@ -13,9 +13,7 @@ class CommandPanel:
     active = True
 
     @classmethod
-    def initialize(cls):
-        # cls.input_field = 
-        
+    def initialize(cls):        
         # cls.input_field.scale = (0.5, .05)
         cls.input_field.submit_on = 'enter'
         cls.input_field.on_submit = cls.execute_command
