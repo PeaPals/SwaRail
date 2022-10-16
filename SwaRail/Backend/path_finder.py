@@ -1,6 +1,6 @@
-from SwaRail.database import Database, State
-from SwaRail.Backend.Algorithms import A_star_search
-import logging   # Major TODO :- use logging everywhere using 'import logging' rather than constants of frontend
+from SwaRail import Database, State
+from SwaRail.Backend.A_star import A_star_search
+import logging
 
 
 
@@ -18,10 +18,13 @@ class RouteProcessor:
     @staticmethod
     def _convert_to_2d_route(route):
         for index, element in enumerate(route):
-            if isinstance(element, list): continue
+            if isinstance(element, list) or isinstance(element, set): continue
 
-            all_haults = Database.stations.get(element, False)
-            if all_haults == False: logging.critical(f"No station found for station ID :- {element}. Please switch back to manual mode as soon as possible")
+            all_haults = Database.get_haults(element, False)
+            
+            if all_haults == False:
+                logging.critical(f"No station found for station ID :- {element}. Please switch back to manual mode as soon as possible")
+                return []
             
             route[index] = all_haults
 
@@ -31,19 +34,23 @@ class RouteProcessor:
     @staticmethod
     def __get_platform_cost(platform_id):
         cost = 0
-        cost += Database.get_component(platform_id).usage             # platform should be least used
-        # cost += max(0, train.length - platform.length)              # platform should have enough length
+        cost += Database.get_node(platform_id).usage             # platform should be least used
+        # cost += max(0, train.length - platform.length)              # TODO:- platform should have enough length
                                                                       # to accomodate complete train
 
         return cost
 
 
     @classmethod
-    def _get_platform(cls, platforms):
+    def _get_choosen_platform(cls, platforms):
         # the platform should not be occupied
-        platforms = filter(lambda platform : Database.get_component(platform).state == State.AVAILABLE, platforms)
-        choosen_platform = min(platforms, key = lambda platform_id : cls.__get_platform_cost(platform_id))
+        platforms = list(filter(lambda platform_id : Database.get_node(platform_id).state == State.AVAILABLE, platforms))
+        if len(platforms) == 0: return None
 
+        # Major TODO :- should we alos check here if is any currently path available to platforms and
+        # filter those platforms?
+
+        choosen_platform = min(platforms, key = lambda platform_id : cls.__get_platform_cost(platform_id))
         return choosen_platform
 
 
@@ -53,44 +60,76 @@ class RouteProcessor:
         new_1d_path = []
 
         for platforms in route:
-            track_circuit_id = cls._get_platform(platforms)
+            choosen_platform = cls._get_choosen_platform(platforms)
 
-            if not track_circuit_id:  # TODO :- remove this
+            if choosen_platform == None:
+                # no platform is available at the moment
                 return []
 
-            new_1d_path.append(track_circuit_id)
-
+            new_1d_path.append(choosen_platform)
         return new_1d_path
 
 
     @staticmethod
-    def _get_filtered_next_layer(previous_layer, current_layer):
-        new_current_layer = set()
+    def _filter_forwards(route):
+        for index in range(len(route)-1):
+            curr_layer = route[index]
+            next_layer = route[index+1]
+            new_next_layer = set()
 
-        for previous_track_circuit_id in previous_layer:
-            for current_track_circuit_id in current_layer:
-                if (previous_track_circuit_id, current_track_circuit_id) in Database.connectivity:
-                    new_current_layer.add(current_track_circuit_id)
+            for curr_node_id in curr_layer:
+                new_next_layer = new_next_layer.union(
+                    filter(
+                        lambda next_node_id: Database.get_connectivity(curr_node_id, next_node_id),
+                        next_layer
+                    )
+                )
 
-        return new_current_layer
+            route[index+1] = new_next_layer
+
+    
+    @staticmethod
+    def _filter_backwards(route):
+        for index in range(len(route), 0, -1):
+            curr_layer = route[index]
+            prev_layer = route[index-1]
+            new_prev_layer = set()
+
+            for curr_node_id in curr_layer:
+                new_prev_layer = new_prev_layer.union(
+                    filter(
+                        lambda prev_node_id: Database.get_connectivity(prev_node_id, curr_node_id),
+                        prev_layer
+                    )
+                )
+
+            route[index-1] = new_prev_layer
 
 
-    # TODO :- MAJOR BLUNDER :- I have only checked on way connectivity, which will not work
-    # I have to first filter from source to all the layers in forward direction (which I did)
-    # and I also have to filter the above filtered path once again in backward direction
-    # that is, from target to source this time
 
     @classmethod
     def _filter_connected_route(cls, route):
-        new_path = [set(route[0])]
+        sub_graph = cls._filter_backwards(route)
+        sub_graph = cls._filter_forwards(sub_graph)
+        
+        return sub_graph
 
-        for i in range(1, len(route)):
-            previous_layer, current_layer = route[i-1], route[i]
-            current_layer = cls._get_filtered_next_layer(previous_layer, current_layer)
 
-            new_path.append(current_layer)
 
-        return new_path
+
+class RouteHandler:
+
+    @classmethod
+    def book_route(cls, train_number, route):
+        route = RouteProcessor.process_route(route)
+
+
+    @classmethod
+    def set_train_route(train_number, route):
+        Database.add_route_to_train(train_number, route)
+
+
+
 
 
 
@@ -98,24 +137,6 @@ class RouteProcessor:
 class PathFinder:
     
     @classmethod
-    def find_path(cls, source, target):
-        path = A_star_search(source, target, direction = '>')
-        direction = '>'
-
-        if not path:
-            path = A_star_search(source, target, direction = '<')
-            direction = '<'
-
-        if path and cls.validate_path(path):
-            return path, direction
-        
-        return False, False
-
-
-    @staticmethod
-    def validate_path(path):
-        for node_id in path:
-            if Database.get_component(node_id).state != State.AVAILABLE:
-                return False
-
-        return True
+    def find_path(cls, source, target, direction):
+        path = A_star_search(source, target, direction)
+        return path

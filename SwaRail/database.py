@@ -1,22 +1,17 @@
 from ursina import color
 import itertools
-import copy
-
-class State:
-    AVAILABLE = 0
-    BOOKED = 1
-    OCCUPIED = 2
-
+from SwaRail import settings
 
 
 class Database:
 
-    __railmap : list[str] = None
-    
-    graph : dict[str, dict[str, list[str]]] = {}
-    connectivity = set()
-    stations : dict[str, set[str]] = {}
-    trains = {}
+    __railmap = None
+    __stations = {}
+    __references = {}
+    __connectivity = set()
+    connectivity_ratio = 0
+
+    __models = {}
 
 
     train_colors = itertools.cycle([
@@ -24,142 +19,90 @@ class Database:
         color.blue, color.violet, color.magenta, color.pink, color.brown, color.olive, color.peach,
         color.gold, color.salmon
     ])
-    
-
-    components_mapping = {
-        "TC" : "track_circuits",
-        "SI" : "signals",
-        "CO" : "crossover",
-        "SP" : "seperators"
-    }
-
-
-    __references = {}
 
 
     # --------------------------- classmethods for dealing with components --------------------------- #
 
 
     @classmethod
-    def add_component(cls, component):
-        id_prefix = component.ID[:2]
-        component_type = cls.components_mapping.get(id_prefix, False)
-
-        if component_type:
-            getattr(cls, component_type).add(component.ID)
-            cls.__references[component.ID] = component
-
+    def add_node(cls, node):
+        Database.__references[node.id] = node
 
     @classmethod
-    def get_component(cls, component_id):
-        return cls.__references.get(component_id, None)
+    def get_node(cls, node_id):
+        return cls.__references.get(node_id, None)
 
     @classmethod
-    def get_track_circuit_from_coordinates(cls, coordinates):
-        component_id = f"TC-{coordinates.Y}-{coordinates.X}"
-        return cls.__references.get(component_id, State.AVAILABLE)
-
+    def stream_references(cls):
+        return ((_id, reference) for _id, reference in cls.__references.items())
 
     @classmethod
     def get_railmap(cls):
         return cls.__railmap
 
     @classmethod
-    def set_railmap(cls, railmap):
-        cls.__railmap = copy.deepcopy(railmap)
+    def load_railmap(cls, railmap_name):
+        with open(settings.MAP_PATH(railmap_name), 'r') as map_file:
+            cls.__railmap = map_file.read().split('\n') # TODO :- convert path to absolute path
+
+        return cls.__railmap
 
 
     @classmethod
-    def get_all_ids(cls, component_prefix):
-        component_name = cls.components_mapping.get(component_prefix, None)
-
-        match component_name:
-            case None: return set()
-            case _: return getattr(cls, component_name)
-
+    def set_model(cls, left_id, right_id, model):
+        cls.__models[(left_id, right_id)] = cls.__models[(right_id, left_id)] = model
 
     @classmethod
-    def get_neighbours(cls, id, direction):
-        details = id.split(":")
-        
-        match len(details):
-            case 1: id, index = id, 0
-            case 2: id, index = details[0], int(details[1])
+    def get_model(cls, left_id, right_id):
+        cls.__models.get((left_id, right_id), None)
 
-        component_connections = cls.graph.get(id, {'<': [], '>': []})
-        return component_connections[direction][index:]
+    @classmethod
+    def add_connectivity(cls, _from, _to):
+        cls.__connectivity.add((_from, _to))
+
+    @classmethod
+    def get_connectivity(cls, _from, _to):
+        return (_from, _to) in cls.__connectivity
 
 
     # ----------------------- classmethods for dealing with stations / haults ----------------------- #
 
 
     @classmethod
-    def add_hault(cls, station_id, track_circuit_id):
-        all_platforms = cls.stations.get(station_id, [])
-        all_platforms.append(track_circuit_id)
-        cls.stations[station_id] = all_platforms
+    def add_hault(cls, station_id: str, node_id: str) -> None:
+        haults = cls.__stations.get(station_id, set())
+        haults.add(node_id)
+        cls.__stations[station_id] = haults
+        
+    @classmethod
+    def get_haults(cls, station_id: str) -> list:
+        return (hault_id for hault_id in cls.__stations.get(station_id, []))
 
 
     @classmethod
-    def get_all_haults(cls):
+    def get_all_hault_ids(cls) -> list:
         all_haults = set()
 
-        for station_id in cls.stations.keys():
-            for track_circuit_id in cls.stations[station_id]:
-                all_haults.add(track_circuit_id)
-
+        for station_id in cls.__stations.keys():
+            all_haults = all_haults.union(cls.__stations[station_id])
+        
         return all_haults
 
 
-    # ----------------------------- classmethods for dealing with graph ----------------------------- #
-
-
     @classmethod
-    def register_graph_node(cls, component):
-        cls.graph[component.ID] = {'>': [], '<' : []}
-
-
-    @classmethod
-    def add_graph_connection(cls, left_component, right_component):
-        cls.graph[left_component.ID]['>'].append(right_component.ID)
-        cls.graph[right_component.ID]['<'].append(left_component.ID)
-
+    def calculate_connectivity_ratio(cls, total_key_nodes):
+        ''' this will always be from 0 to 1 '''
+        cls.connectivity_ratio = round(len(cls.__connectivity) / (total_key_nodes*(total_key_nodes-1)), 4)
 
     # -------------------------------------- other classmethods -------------------------------------- #
 
 
     @classmethod
     def reset_database(cls):
-        for component_type in cls.components_mapping.values():
-            setattr(cls, component_type, set())
-            cls.__railmap = None; cls.graph = {}; cls.connectivity = set(); cls.stations = {}; cls.trains
+        cls.__railmap = None
+        cls.__references = {}
 
 
     @classmethod
     def get_next_train_color(cls):
         return next(cls.train_colors)
-        
-
-    @classmethod
-    def summary(cls):
-        summary = ["Database Summary : "]
-        
-        for component_type in cls.components_mapping.values():
-            summary.append(f"\n{component_type} = {getattr(cls, component_type)}")
-
-        summary.append(f"\nStations : {cls.stations}")
-
-        cls.printer() # TODO :- remove this
-
-        return '\n'.join(summary)
-
-
-    # TODO :  remove this
-    @classmethod
-    def printer(cls):
-        
-        import pprint
-        print("Database connections : ")
-        print("\n\nGraph : ")
-        pprint.pprint(cls.graph)
-        # print(cls.graph)

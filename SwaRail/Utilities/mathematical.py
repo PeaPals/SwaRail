@@ -1,4 +1,6 @@
 import math
+from ursina import Vec2 as UrsinaVec2
+from ursina import Vec3 as UrsinaVec3
 
 
 class Vec2:
@@ -34,11 +36,24 @@ class Vec2:
 
         return (self.x == coordinate.x) and (self.y == coordinate.y)
 
+
     def __repr__(self):
         return f"Vec2({self.x}, {self.y})"
 
     def __hash__(self):
         return hash(self.__repr__())
+
+
+
+    def UrsinaVec2(self):
+        return UrsinaVec2(self.x, self.y)
+
+    def UrsinaVec3(self):
+        return UrsinaVec3(self.x, self.y, 0)
+
+
+    def copy(self):
+        return Vec2(self.x, self.y)
 
 
     @staticmethod

@@ -1,6 +1,6 @@
 from ursina import held_keys, camera, time, application
-from SwaRail.Utilities.command_panel import CommandPanel
-from SwaRail import constants
+# from SwaRail.Utilities.command_panel import CommandPanel
+from SwaRail import settings
 
 
 # APPLICATION_IS_PAUSED = False
@@ -9,31 +9,31 @@ def _check_keyboard_navigations():
 
     # movement checks
     if held_keys['w']:
-        camera.y += constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.y += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
     elif held_keys['a']:
-        camera.x -= constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.x -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
     elif held_keys['s']:
-        camera.y -= constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.y -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
     elif held_keys['d']:
-        camera.x += constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.x += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
 
     # zoom in and out checks
 
     elif  held_keys['z']:
-        camera.z += constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.z += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
     elif held_keys['x']:
-        camera.z -= constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.z -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
 
     # toggle command panel
 
-    elif held_keys['c']:
-        CommandPanel.toggle_state()
+    # elif held_keys['c']:
+    #     CommandPanel.toggle_state()
 
     # pausing and playing application checks
 
@@ -60,15 +60,15 @@ def _check_mouse_navigations():
     # zoom in and out checks # TODO :- NOT WORKING
 
     if held_keys['scroll up']:
-        camera.z += constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.z += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
     elif held_keys['scroll down']:
-        camera.z -= constants.CAMERA_NAVIGATION_SPEED * time.dt
+        camera.z -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
 
 def check_navigations():
-    if CommandPanel.active:
-        return None
+    # if CommandPanel.active:
+    #     return None
         
     _check_keyboard_navigations()
     # _check_mouse_navigations()

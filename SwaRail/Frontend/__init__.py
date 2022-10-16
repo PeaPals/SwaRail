@@ -1,1 +1,1 @@
-# Frontend will provide the necessary UI for the SwaRail app and demonstrate its working visually
+from SwaRail.Frontend.parser import MapParser
