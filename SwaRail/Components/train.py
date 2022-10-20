@@ -10,6 +10,8 @@ class Train:
         self.route = None
         self.path = None
         self.signal_seq = None
+        self.time = None
+        self.speed = None
         self.__currently_at = None
 
         for key, value in kwargs.items():

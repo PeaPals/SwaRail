@@ -12,7 +12,6 @@ class Simulator():
     def __init__(self):
         logging.info("Simulator turned on")
         self.data = None
-        self.time = settings.TRAIN_POSITION_UPDATE_TIME
         self.start_simulation()
         
         self.model = Entity()
@@ -35,11 +34,7 @@ class Simulator():
 
 
     def update(self):
-        self.time -= 1
-
-        if self.time == 0:
-            self.update_train_positions()
-            self.time = settings.TRAIN_POSITION_UPDATE_TIME
+        self.update_train_positions()
 
         if not self.data:
             return None
@@ -72,7 +67,7 @@ class Simulator():
         route = [[starting_track_circuit.id]] + route[1:]
         self.send_train_data_to_server(train_number, starting_track_circuit.id)
         
-        train = Train(number=train_number, route=route, direction=direction)
+        train = Train(number=train_number, route=route, direction=direction, speed=record["speed"], time=record["speed"])
         Database.add_train(train_number, train)
         starting_track_circuit.state = State.OCCUPIED
 
@@ -85,6 +80,13 @@ class Simulator():
 
     def update_train_positions(self):
         for train in Database.get_all_trains():
+
+            train.time -= 1
+
+            if train.time == 0:
+                train.time = train.speed
+            else:
+                continue
 
             if train.route == [] and train.path == None:
                 # last_tc_node = train.currently_at

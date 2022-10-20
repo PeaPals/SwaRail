@@ -6,49 +6,56 @@
             "arriving_at": "00:00:00",
             "arriving_at_index": 0,
             "priority": 5,
-            "direction": ">"
+            "direction": ">",
+            "speed": 100
         },
         {
             "train_number": 2,
             "route": ["SEC_D", "SEC_A"],
             "arriving_at": "00:00:10",
             "arriving_at_index": 1,
-            "direction": "<"
+            "direction": "<",
+            "speed": 5
         },
         {
             "train_number": 3,
             "route": ["SEC_A", "SNP"],
             "arriving_at": "00:00:30",
             "arriving_at_index": 0,
-            "direction": ">"
+            "direction": ">",
+            "speed": 5
         },
         {
             "train_number": 4,
             "route": ["SEC_C", "SNP"],
             "arriving_at": "00:00:40",
             "arriving_at_index": 0,
-            "direction": "<"
+            "direction": "<",
+            "speed": 5
         },
         {
             "train_number": 5,
             "route": ["SNP", "SEC_B"],
             "arriving_at": "00:01:00",
             "arriving_at_index": 0,
-            "direction": "<"
+            "direction": "<",
+            "speed": 5
         },
         {
             "train_number": 6,
             "route": ["SNP", "SEC_D"],
             "arriving_at": "00:02:00",
             "arriving_at_index": 0,
-            "direction": ">"
+            "direction": ">",
+            "speed": 5
         },
         {
             "train_number": 8,
             "route": ["SEC_A", "SEC_C"],
             "arriving_at": "00:03:00",
             "arriving_at_index": 0,
-            "direction": ">"
+            "direction": ">",
+            "speed": 5
         }
     ]
 }
