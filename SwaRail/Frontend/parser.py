@@ -1,8 +1,11 @@
-from SwaRail.Components import Node
+
 from SwaRail.Utilities import Vec2
-from SwaRail import Type, Database, settings
+from .postparser import PostParser
+from SwaRail import (
+    Node, Signal,
+    Type, Database, settings
+)
 from ursina import Vec3 as UrsinaVec3
-from SwaRail.Frontend.postparser import PostParser
 import logging
 
 
@@ -11,6 +14,11 @@ import logging
 
 # Major TODO :- you removed most of the logging there was in parser... add them all back
 # they were useful and important
+
+
+# Minor TODO :- dont you think the direction should only be specified at start of lane? that is...
+# a complete lane should have that same direction to avoid any kind of problems in having 2 nodes with 
+# opposite directions side-by-side on a lane
 
 
 class MapParser:
@@ -72,8 +80,8 @@ class MapParser:
 
 
     @classmethod
-    def _add_to_database(cls, node: Node) -> None:
-        Database.add_node(node)
+    def _add_to_database(cls, ref) -> None:
+        Database.add_reference(ref)
 
 
     @classmethod
@@ -122,9 +130,19 @@ class MapParser:
 
         anonymous_node = cls._create_new_node(direction='?', type=Type.ANONYMOUS)
         cls.prev_node.add_neighbour(anonymous_node.id, '>')
+        cls._update_stations(cls.prev_node)
         cls.prev_node = None
 
-        Database.add_node(anonymous_node)
+        Database.add_reference(anonymous_node)
+
+
+    @classmethod
+    def _update_stations(cls, node: Node) -> None:
+        if node == None or node.station_id == '':
+            return None
+
+        node.station_id = node.station_id.upper()
+        Database.add_hault(node.station_id, node.id)
 
 
     @classmethod
@@ -137,27 +155,44 @@ class MapParser:
         )
 
 
-    # -------------------------------- classmethods to update signals -------------------------------- #
-
-
-    @classmethod
-    def _add_new_signal(cls, character):
-        pass
-
-    @classmethod
-    def _create_new_signal(cls, type):
-        pass
-
-
-    # ------------------------------ classmethods to update track nodes ----------------------------- #
-
-    
     @classmethod
     def _start_new_track_node(cls, new_node: Node) -> None:
         cls._add_to_database(new_node)
         cls._connect_nodes(left_node=cls.prev_node, right_node=new_node)
+        cls._update_stations(cls.prev_node)
 
         cls.prev_node = new_node
+
+
+    # -------------------------------- classmethods to update signals -------------------------------- #
+
+    @classmethod
+    def _add_signal_to_curr_node(cls, signal: Signal) -> None:
+        if cls.prev_node == None:
+            logging.warning(f"No track node found to add signal present at {cls._get_position()}")
+            return None
+
+        cls.prev_node.add_signal(signal.id, signal.direction)
+
+
+    @classmethod
+    def _create_new_signal(cls, character):
+        direction, signal_type = settings.NUMBER_TO_SIGNAL[character].split('-')
+        
+        return Signal(
+            id=cls._get_id('SI'),
+            type=signal_type,
+            direction=direction,
+            position=cls._get_position()
+        )
+
+
+    @classmethod
+    def _add_new_signal(cls, character):
+        new_signal = cls._create_new_signal(character)
+        cls._add_signal_to_curr_node(new_signal)
+        cls._add_to_database(new_signal)
+
 
 
     # -------------------------- classmethods to update intersection nodes -------------------------- #
@@ -179,7 +214,7 @@ class MapParser:
     @classmethod
     def _link_left_crossover(cls, curr_node: Node) -> None:
         left_node_id = cls._get_left_ending_node_id(cls.curr_coords)
-        left_node = Database.get_node(left_node_id)
+        left_node = Database.get_reference(left_node_id)
         cls._connect_nodes(left_node=left_node, right_node=curr_node)
 
 
@@ -200,7 +235,7 @@ class MapParser:
     @classmethod
     def _link_right_crossover(cls, curr_node: Node) -> None:
         right_node_id = cls._get_right_ending_node_id(cls.curr_coords)
-        right_node = Database.get_node(right_node_id)
+        right_node = Database.get_reference(right_node_id)
         cls._connect_nodes(left_node=curr_node, right_node=right_node)
     
 

@@ -1,4 +1,4 @@
-from ursina import window, Ursina, camera, color
+from ursina import window, Ursina, camera, color, Vec3
 
 
 SwaRailApplication = Ursina()
@@ -17,3 +17,5 @@ window.color = color.black90            # TODO :- find out about different shade
 
 camera.x += (window.size.x / 100) - 2.5
 camera.y -= (window.size.y / 100) - 4
+
+camera.position += Vec3(32.5, 0, -90)

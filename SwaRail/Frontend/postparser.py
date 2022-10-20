@@ -1,4 +1,4 @@
-from SwaRail.Backend import BFS
+from SwaRail.Backend.BFS import connectivity_BFS
 from SwaRail import Type, Database
 import logging
 
@@ -17,12 +17,12 @@ class PostParser:
 
     @classmethod
     def finalize_references(cls) -> None:
-        for node_id, node in Database.stream_references():
-            if node.type == Type.ANONYMOUS:
+        for ref_id, ref in Database.stream_references():
+            if ref.type == Type.ANONYMOUS:
                 continue
 
-            node.finalize_attributes()
-            node.draw()
+            ref.finalize_attributes()
+            ref.draw()
 
 
     @classmethod
@@ -31,7 +31,7 @@ class PostParser:
 
         for hault_id in key_nodes:
             for direction in ('>', '<'):
-                BFS.connectivity_BFS(hault_id, direction, key_nodes)
+                connectivity_BFS(hault_id, direction, key_nodes)
 
         Database.calculate_connectivity_ratio(len(key_nodes))
 
@@ -39,4 +39,4 @@ class PostParser:
     @classmethod
     def summary(cls):
         logging.info("parsing and post-parsing done successfully")
-        logging.info(f"Connectivity ratio of this map is {Database.connectivity_ratio}")
+        Database.summary()

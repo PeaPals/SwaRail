@@ -1,5 +1,5 @@
-from SwaRail.Backend.priority_queue import PriorityQueue
-from SwaRail import Database
+from SwaRail import State
+from .priority_queue import PriorityQueue
 
 
 # --------------------------------------- A* Major Functions --------------------------------------- #
@@ -24,6 +24,8 @@ def A_star_search(source : str, target : str, direction : str):
 
 
 def _A_Star(source : str, target : str, direction : str):
+    from SwaRail import Database
+    
     frontier = PriorityQueue()
     came_from = {}
     cost_so_far = {}
@@ -39,7 +41,12 @@ def _A_Star(source : str, target : str, direction : str):
         if current_node_id == target:
             break
 
-        for next_node_id in Database.get_node(current_node_id).get_neighbours(direction):
+        for next_node_id in Database.get_reference(current_node_id).get_neighbours(direction):
+            next_node = Database.get_reference(next_node_id)
+
+            if next_node.state != State.AVAILABLE:
+                continue
+
             new_cost = cost_so_far[current_node_id] + cost(current_node_id, next_node_id)
             if new_cost < cost_so_far.get(next_node_id, float('inf')):
                 cost_so_far[next_node_id] = new_cost
@@ -59,7 +66,7 @@ def reconstruct_path(came_from, source, target):
     if target not in came_from:
         return []
 
-    while current != target:
+    while current != source:
         path.append(current)
         current = came_from[current]
 

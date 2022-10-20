@@ -1,6 +1,8 @@
-from SwaRail import Database, State
-from SwaRail.Backend.A_star import A_star_search
+from SwaRail import State
+from SwaRail.database import Database
+from .A_star import A_star_search
 import logging
+from queue import Queue
 
 
 
@@ -8,9 +10,13 @@ class RouteProcessor:
 
     @classmethod
     def process_route(cls, route):
+        print("processing route :", route)
         route = cls._convert_to_2d_route(route)
+        print(route)
         route = cls._filter_connected_route(route)
+        print(route)
         route = cls._convert_to_1d_route(route)
+        print(route)
 
         return route
 
@@ -20,13 +26,13 @@ class RouteProcessor:
         for index, element in enumerate(route):
             if isinstance(element, list) or isinstance(element, set): continue
 
-            all_haults = Database.get_haults(element, False)
+            all_haults = Database.get_haults(element)
             
-            if all_haults == False:
+            if all_haults == []:
                 logging.critical(f"No station found for station ID :- {element}. Please switch back to manual mode as soon as possible")
                 return []
             
-            route[index] = all_haults
+            route[index] = list(all_haults)
 
         return route
 
@@ -34,7 +40,7 @@ class RouteProcessor:
     @staticmethod
     def __get_platform_cost(platform_id):
         cost = 0
-        cost += Database.get_node(platform_id).usage             # platform should be least used
+        cost += Database.get_reference(platform_id).usage             # platform should be least used
         # cost += max(0, train.length - platform.length)              # TODO:- platform should have enough length
                                                                       # to accomodate complete train
 
@@ -44,7 +50,8 @@ class RouteProcessor:
     @classmethod
     def _get_choosen_platform(cls, platforms):
         # the platform should not be occupied
-        platforms = list(filter(lambda platform_id : Database.get_node(platform_id).state == State.AVAILABLE, platforms))
+        # TODO :- maybe problem here ?
+        platforms = list(filter(lambda platform_id : Database.get_reference(platform_id).state == State.AVAILABLE, platforms))
         if len(platforms) == 0: return None
 
         # Major TODO :- should we alos check here if is any currently path available to platforms and
@@ -87,10 +94,12 @@ class RouteProcessor:
 
             route[index+1] = new_next_layer
 
+        return route
+
     
     @staticmethod
     def _filter_backwards(route):
-        for index in range(len(route), 0, -1):
+        for index in range(len(route)-1, 0, -1):
             curr_layer = route[index]
             prev_layer = route[index-1]
             new_prev_layer = set()
@@ -105,6 +114,8 @@ class RouteProcessor:
 
             route[index-1] = new_prev_layer
 
+        return route
+
 
 
     @classmethod
@@ -117,18 +128,52 @@ class RouteProcessor:
 
 
 
-class RouteHandler:
+class PathHandler:
 
     @classmethod
-    def book_route(cls, train_number, route):
-        route = RouteProcessor.process_route(route)
+    def book_path(cls, path, train):
+
+        signal_seq = []
+        train_color = Database.get_next_train_color()
+        train.signal_seq = Queue(maxsize=0)
+
+        for node_id in path:
+            node = Database.get_reference(node_id)
+            node.book(train.number, train_color)
+
+            for signal_id in node.get_all_signals(train.direction):
+                signal_seq.append(State.GREEN)
+
+
+        _flag = False
+
+        match len(signal_seq):
+            case 0: pass
+            case 1: signal_seq = [State.RED]
+            case 2: signal_seq = [State.YELLOW, State.RED]
+            case 3: signal_seq = [State.YELLOW, State.YELLOW, State.RED]
+            case 4: signal_seq = [State.YELLOW, State.YELLOW, State.YELLOW, State.RED]
+            case _: _flag = True
+
+        
+        if _flag:
+            signal_seq[-1] = State.RED
+            signal_seq[-2] = State.YELLOW
+            signal_seq[-3] = State.YELLOW
+            signal_seq[-4] = State.YELLOW
+
+
+        for state in signal_seq:
+            train.signal_seq.put(state)
+
+        cls.notify_track(path[0], train)
+        cls.notify_track(path[1], train)
 
 
     @classmethod
-    def set_train_route(train_number, route):
-        Database.add_route_to_train(train_number, route)
-
-
+    def notify_track(cls, node_id, train):
+        node = Database.get_reference(node_id)
+        node.notification(train)
 
 
 

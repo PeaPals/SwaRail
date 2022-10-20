@@ -1,10 +1,54 @@
 {
-    "1" : ["SEC_B", "SEC_C"],
-    "2" : ["SEC_D", "SEC_A"],
-    "3" : ["SEC_A", "SNP"],
-    "4" : ["SEC_C", "SNP"],
-    "5" : ["SNP", "SEC_B"],
-    "6" : ["SNP", "SEC_D"],
-    "7" : [["TC-6-216"], "SEC_B"],
-    "8" : ["SEC_A", "SEC_C"]
+    "routes": [
+        {
+            "train_number": 1,
+            "route": ["SEC_B", "SEC_C"],
+            "arriving_at": "00:00:00",
+            "arriving_at_index": 0,
+            "priority": 5,
+            "direction": ">"
+        },
+        {
+            "train_number": 2,
+            "route": ["SEC_D", "SEC_A"],
+            "arriving_at": "00:00:10",
+            "arriving_at_index": 1,
+            "direction": "<"
+        },
+        {
+            "train_number": 3,
+            "route": ["SEC_A", "SNP"],
+            "arriving_at": "00:00:30",
+            "arriving_at_index": 0,
+            "direction": ">"
+        },
+        {
+            "train_number": 4,
+            "route": ["SEC_C", "SNP"],
+            "arriving_at": "00:00:40",
+            "arriving_at_index": 0,
+            "direction": "<"
+        },
+        {
+            "train_number": 5,
+            "route": ["SNP", "SEC_B"],
+            "arriving_at": "00:01:00",
+            "arriving_at_index": 0,
+            "direction": "<"
+        },
+        {
+            "train_number": 6,
+            "route": ["SNP", "SEC_D"],
+            "arriving_at": "00:02:00",
+            "arriving_at_index": 0,
+            "direction": ">"
+        },
+        {
+            "train_number": 8,
+            "route": ["SEC_A", "SEC_C"],
+            "arriving_at": "00:03:00",
+            "arriving_at_index": 0,
+            "direction": ">"
+        }
+    ]
 }

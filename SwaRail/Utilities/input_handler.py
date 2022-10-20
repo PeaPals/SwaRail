@@ -1,43 +1,52 @@
 from ursina import held_keys, camera, time, application
 # from SwaRail.Utilities.command_panel import CommandPanel
 from SwaRail import settings
+from SwaRail.Simulator import MainSimulator
 
 
 # APPLICATION_IS_PAUSED = False
+SIMULATOR = False
 
 def _check_keyboard_navigations():
+    global SIMULATOR
 
     # movement checks
     if held_keys['w']:
         camera.y += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
-    elif held_keys['a']:
+    if held_keys['a']:
         camera.x -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
-    elif held_keys['s']:
+    if held_keys['s']:
         camera.y -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
-    elif held_keys['d']:
+    if held_keys['d']:
         camera.x += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
 
     # zoom in and out checks
 
-    elif  held_keys['z']:
+    if  held_keys['z']:
         camera.z += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
-    elif held_keys['x']:
+    if held_keys['x']:
         camera.z -= settings.CAMERA_NAVIGATION_SPEED * time.dt
+
+
+    if held_keys['h'] and SIMULATOR == False:
+        simulator = MainSimulator()
+        SIMULATOR = True
+
 
 
     # toggle command panel
 
-    # elif held_keys['c']:
+    # if held_keys['c']:
     #     CommandPanel.toggle_state()
 
     # pausing and playing application checks
 
-    elif held_keys['p']:
+    if held_keys['p']:
         global APPLICATION_IS_PAUSED
         if APPLICATION_IS_PAUSED:
             APPLICATION_IS_PAUSED = False
@@ -62,7 +71,7 @@ def _check_mouse_navigations():
     if held_keys['scroll up']:
         camera.z += settings.CAMERA_NAVIGATION_SPEED * time.dt
 
-    elif held_keys['scroll down']:
+    if held_keys['scroll down']:
         camera.z -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
 

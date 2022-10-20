@@ -1,1 +1,2 @@
-from SwaRail.Frontend.parser import MapParser
+from .parser import MapParser
+from .postparser import PostParser

@@ -1,0 +1,1 @@
+from SwaRail.Simulator.simulator import Simulator as MainSimulator
