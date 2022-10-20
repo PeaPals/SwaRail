@@ -2,7 +2,7 @@ from .path_finder import PathFinder, RouteProcessor, PathHandler
 from .priority_queue import PriorityQueue
 from random import randint
 from ursina import Entity
-from SwaRail import settings
+from SwaRail import settings, State
 
 class _TrainHandler():
     def __init__(self):
@@ -47,17 +47,17 @@ class _TrainHandler():
 
             new_queue.append(train_number)
 
-            if train.route == [] or len(train.route) == 1:
+            if (train.route == [] or len(train.route) == 1):
+                if train.path == None:
+                    Database.remove_train(train.number)
+                    new_queue.pop()
+                    node_at = Database.get_reference(train.currently_at).state = State.AVAILABLE
                 continue
 
             new_route = RouteProcessor.process_route(train.route.copy())
             if new_route == []: continue
 
             new_path = PathFinder.find_path(new_route[0], new_route[1], train.direction)
-
-            print(train_number, new_route[0], new_route[1])
-            print(new_path)
-
             if new_path == []: continue
             
             train.path = new_path

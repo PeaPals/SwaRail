@@ -10,13 +10,9 @@ class RouteProcessor:
 
     @classmethod
     def process_route(cls, route):
-        print("processing route :", route)
         route = cls._convert_to_2d_route(route)
-        print(route)
         route = cls._filter_connected_route(route)
-        print(route)
         route = cls._convert_to_1d_route(route)
-        print(route)
 
         return route
 
@@ -26,13 +22,13 @@ class RouteProcessor:
         for index, element in enumerate(route):
             if isinstance(element, list) or isinstance(element, set): continue
 
-            all_haults = Database.get_haults(element)
+            all_haults = list(Database.get_haults(element))
             
             if all_haults == []:
                 logging.critical(f"No station found for station ID :- {element}. Please switch back to manual mode as soon as possible")
                 return []
             
-            route[index] = list(all_haults)
+            route[index] = all_haults
 
         return route
 
@@ -63,10 +59,10 @@ class RouteProcessor:
 
     @classmethod
     def _convert_to_1d_route(cls, route):
-        # follow some rules to get the 1D path
-        new_1d_path = []
+        new_1d_path = [route[0][0]]
 
-        for platforms in route:
+        for index in range(1, len(route)):
+            platforms = route[index]
             choosen_platform = cls._get_choosen_platform(platforms)
 
             if choosen_platform == None:
@@ -92,7 +88,7 @@ class RouteProcessor:
                     )
                 )
 
-            route[index+1] = new_next_layer
+            route[index+1] = list(new_next_layer)
 
         return route
 
@@ -112,7 +108,7 @@ class RouteProcessor:
                     )
                 )
 
-            route[index-1] = new_prev_layer
+            route[index-1] = list(new_prev_layer)
 
         return route
 
@@ -129,13 +125,14 @@ class RouteProcessor:
 
 
 class PathHandler:
-
+    
     @classmethod
     def book_path(cls, path, train):
 
         signal_seq = []
         train_color = Database.get_next_train_color()
         train.signal_seq = Queue(maxsize=0)
+
 
         for node_id in path:
             node = Database.get_reference(node_id)
@@ -145,23 +142,25 @@ class PathHandler:
                 signal_seq.append(State.GREEN)
 
 
+
+
         _flag = False
 
         match len(signal_seq):
             case 0: pass
-            case 1: signal_seq = [State.RED]
-            case 2: signal_seq = [State.YELLOW, State.RED]
-            case 3: signal_seq = [State.YELLOW, State.YELLOW, State.RED]
-            case 4: signal_seq = [State.YELLOW, State.YELLOW, State.YELLOW, State.RED]
+            case 1: signal_seq = [State.YELLOW]*1
+            case 2: signal_seq = [State.YELLOW]*2
+            case 3: signal_seq = [State.YELLOW]*3
             case _: _flag = True
 
         
         if _flag:
-            signal_seq[-1] = State.RED
+            signal_seq[-1] = State.YELLOW
             signal_seq[-2] = State.YELLOW
             signal_seq[-3] = State.YELLOW
-            signal_seq[-4] = State.YELLOW
 
+
+        signal_seq.append(State.YELLOW)
 
         for state in signal_seq:
             train.signal_seq.put(state)

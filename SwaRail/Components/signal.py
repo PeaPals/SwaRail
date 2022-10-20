@@ -30,7 +30,7 @@ class Signal:
             model='circle',
             color=color.red,
             scale=settings.SIGNAL_SIZE,
-            position=self.position + position_offset 
+            position=self.position + Vec3(0, position_offset, 0) 
         )
 
 

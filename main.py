@@ -3,6 +3,7 @@
 
 from SwaRail import MapParser, SwaRailApplication, input_handler, Timer
 
+
 # ---------------------------------------- INITIALIZATIONS ---------------------------------------- #
 
 MapParser.parse('Sonipat')
@@ -15,6 +16,7 @@ MapParser.parse('Sonipat')
 # print("Calculated Route :", route)
 # path = PathFinder.find_path(route[0], route[1], direction='>')
 # print("Calculated Path :", path)
+
 
 def update():
     input_handler.check_navigations()

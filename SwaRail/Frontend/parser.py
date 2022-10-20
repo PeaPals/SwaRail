@@ -85,7 +85,7 @@ class MapParser:
 
 
     @classmethod
-    def _get_position(cls, x=None, y=None) -> Vec2:
+    def _get_position(cls, x=None, y=None):
         if x == None: x = cls.curr_coords.x
         if y == None: y = cls.curr_coords.y
 

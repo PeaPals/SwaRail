@@ -127,7 +127,7 @@ class Node:
     def generate_tooltip(self) -> None:
         pass
 
-    def __show_tooltip(self, upcoming_train_number) -> None:
+    def __show_tooltip(self, train_number) -> None:
         pass
 
     def __hide_tooltip(self) -> None:
@@ -217,7 +217,13 @@ class Node:
         self.__hide_tooltip()
         self.model.color = settings.TRACK_CIRCUIT_COLOR[self.direction]
 
+        for direction in ('<', '>'):
+            for signal_id in self.__signals[direction]:
+                signal = Database.get_reference(signal_id)
+                signal.state = State.RED
+
 
     def book(self, train_number: str, color):
         self.state = State.BOOKED
         self.model.color = color
+        # self.__upcoming_train = train_number # TODO :- ?

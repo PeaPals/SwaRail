@@ -24,7 +24,7 @@ COST = {
 # -------------------------------------- Simulator Constants --------------------------------------- #
 
 
-TRAIN_POSITION_UPDATE_TIME = 5 # in milli-seconds
+TRAIN_POSITION_UPDATE_TIME = 10 # in milli-seconds
 TRAIN_HAULT_COUNT_DOWN = 10
 TRAIN_REPATH_COUNT_DOWN = 5
 
@@ -81,7 +81,7 @@ SHOW_TRACK_CIRCUIT_SEPERATOR = True   # TODO :- remove this maybe? just control 
 
 
 # signal constants
-SIGNAL_OFFSET_FROM_TRACKS = Vec3(0, 0.25, 0)
+SIGNAL_OFFSET_FROM_TRACKS = 0.25
 SIGNAL_SIZE = 0.15
 
 NUMBER_TO_SIGNAL = {

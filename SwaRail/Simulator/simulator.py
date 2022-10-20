@@ -65,10 +65,11 @@ class Simulator():
         if len(route) == 0:
             raise Exception('EMPTY_ROUTE')
 
-        starting_track_circuit = Database.get_reference(next(Database.get_haults(route[0])))
+        starting_track_circuit = Database.get_reference(list(Database.get_haults(route[0]))[arriving_at_index])
         if starting_track_circuit.state != State.AVAILABLE:
             return False
 
+        route = [[starting_track_circuit.id]] + route[1:]
         self.send_train_data_to_server(train_number, starting_track_circuit.id)
         
         train = Train(number=train_number, route=route, direction=direction)
@@ -86,11 +87,11 @@ class Simulator():
         for train in Database.get_all_trains():
 
             if train.route == [] and train.path == None:
-                last_tc_node = train.currently_at
-                node = Database.get_reference(last_tc_node)
-                node.state = State.AVAILABLE
+                # last_tc_node = train.currently_at
+                # node = Database.get_reference(last_tc_node)
+                # node.state = State.AVAILABLE
                 
-                Database.remove_train(train.number)
+                # Database.remove_train(train.number)
                 continue
 
             if train.path == None:
@@ -108,9 +109,11 @@ class Simulator():
             next_track = Database.get_reference(next_track_id)
 
             _flag = True
-            for signal_id in curr_track.get_all_signals(train.direction):
+            for signal_id in next_track.get_all_signals(train.direction):
                 if Database.get_reference(signal_id).state == State.RED:
                     _flag = False
+                    break
+                else:
                     break
             # check here if all signals in curr_track is green or yellow (not red)... only then move forward
 
