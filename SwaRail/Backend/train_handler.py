@@ -3,6 +3,7 @@ from .priority_queue import PriorityQueue
 from random import randint
 from ursina import Entity
 from SwaRail import settings, State
+from copy import deepcopy
 
 class _TrainHandler():
     def __init__(self):
@@ -13,8 +14,8 @@ class _TrainHandler():
         self.time = settings.TRAIN_REPATH_COUNT_DOWN
 
 
-    def add_train(self, number: str) -> None:
-        self.trains_queue.put(number, randint(1, 10))
+    def add_train(self, number: str, priority: str) -> None:
+        self.trains_queue.put(number, priority)
 
     def remove_train(self, number):
         self.trains_queue.elements.remove(number)
@@ -47,27 +48,36 @@ class _TrainHandler():
 
             new_queue.append(train_number)
 
-            if (train.route == [] or len(train.route) == 1):
-                if train.path == None:
-                    Database.remove_train(train.number)
-                    new_queue.pop()
-                    node_at = Database.get_reference(train.currently_at).state = State.AVAILABLE
+            if train.path != []:
                 continue
 
-            new_route = RouteProcessor.process_route(train.route.copy())
+            if train.route == []:
+                Database.remove_train(train.number)
+                new_queue.pop()
+                Database.get_reference(train.currently_at).state = State.AVAILABLE
+                continue
+
+            new_route = RouteProcessor.process_route(deepcopy(train.route))
             if new_route == []: continue
+
+            if len(new_route) == 1:
+                train.route = []
+                continue
+
 
             new_path = PathFinder.find_path(new_route[0], new_route[1], train.direction)
             if new_path == []: continue
             
             train.path = new_path
+            train.route.pop(0)
+            train.route[0] = [new_route[1]]
             PathHandler.book_path(new_path, train)
 
 
 
 
         for ele in new_queue:
-            self.trains_queue.put(ele, randint(1, 10))
+            self.trains_queue.put(ele, train.priority)
 
 
 

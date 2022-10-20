@@ -1,20 +1,39 @@
-from SwaRail import State
+from SwaRail import State, settings, Type
+from SwaRail.database import Database
 from .priority_queue import PriorityQueue
 
 
 # --------------------------------------- A* Major Functions --------------------------------------- #
 
 
-#  TODO :-  what kind of heuristics should we consider so that most of the crossovers come near
-# the destination station of the train
+
+# TODO :- direction of track circuit is not considered while finding paths... fix it
+
+
+def euclidian_distance(node_1, node_2):
+    position_1, position_2 = node_1.position, node_2.position
+
+    return (
+        (position_2.x - position_1.x)**2 + (position_2.y - position_1.y)**2
+    )**0.5
 
 
 def heuristics(current_id, target_id):
+    current_node = Database.get_reference(current_id)
+    target_node = Database.get_reference(target_id)
+
+    if current_node.type == Type.INTERSECTION:
+        return euclidian_distance(current_node, target_node) / 10
+
     return 0
+
 
 
 def cost(current_id, next_id):
-    return 0
+    current_node = Database.get_reference(current_id)
+    next_node = Database.get_reference(next_id)
+
+    return settings.COST[(current_node.type, next_node.type)]
 
 
 def A_star_search(source : str, target : str, direction : str):
@@ -45,6 +64,9 @@ def _A_Star(source : str, target : str, direction : str):
             next_node = Database.get_reference(next_node_id)
 
             if next_node.state != State.AVAILABLE:
+                continue
+
+            if not next_node.direction in ('=', direction):
                 continue
 
             new_cost = cost_so_far[current_node_id] + cost(current_node_id, next_node_id)

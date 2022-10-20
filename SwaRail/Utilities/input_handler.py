@@ -1,14 +1,10 @@
 from ursina import held_keys, camera, time, application
-# from SwaRail.Utilities.command_panel import CommandPanel
+from .command_panel import CommandPanel
 from SwaRail import settings
-from SwaRail.Simulator import MainSimulator
 
 
-# APPLICATION_IS_PAUSED = False
-SIMULATOR = False
 
 def _check_keyboard_navigations():
-    global SIMULATOR
 
     # movement checks
     if held_keys['w']:
@@ -33,16 +29,11 @@ def _check_keyboard_navigations():
         camera.z -= settings.CAMERA_NAVIGATION_SPEED * time.dt
 
 
-    if held_keys['h'] and SIMULATOR == False:
-        simulator = MainSimulator()
-        SIMULATOR = True
-
-
-
     # toggle command panel
 
-    # if held_keys['c']:
-    #     CommandPanel.toggle_state()
+    if held_keys['c']:
+        print('ccccc')
+        CommandPanel.toggle_state()
 
     # pausing and playing application checks
 
@@ -76,15 +67,8 @@ def _check_mouse_navigations():
 
 
 def check_navigations():
-    # if CommandPanel.active:
-    #     return None
+    if CommandPanel.active:
+        return None
         
     _check_keyboard_navigations()
     # _check_mouse_navigations()
-
-    
-
-
-
-def process_commands(command):
-    pass

@@ -6,6 +6,10 @@ class Server:
     data = {}
 
     @classmethod
+    def reset(cls):
+        cls.data = {}
+
+    @classmethod
     def add_train(cls, train_number, arriving_at_tc_id):
         cls.data[arriving_at_tc_id] = train_number
 

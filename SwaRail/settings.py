@@ -1,4 +1,5 @@
 from ursina import color, Vec3, Text
+from SwaRail.constants import Type
 import logging
 
 # TODO :- set all colours using rgba values if colors not present in default colors of ursina
@@ -14,10 +15,14 @@ import logging
 # -------------------------------------- A* Search Constants --------------------------------------- #
 
 COST = {
-    'TC-TC': 1,
-    'TC-CO': 4,
-    'CO-TC': 4,
-    'CO-CO': 2,
+    (Type.TRACK, Type.TRACK): 1,        # (From, TO) : Cost of going from From to To
+    (Type.TRACK, Type.INTERSECTION): 4,
+    (Type.INTERSECTION, Type.TRACK): 3,
+    (Type.INTERSECTION, Type.INTERSECTION): 2,
+
+    (Type.TRACK, Type.ANONYMOUS): 1,
+    (Type.INTERSECTION, Type.ANONYMOUS): 3,
+    (Type.ANONYMOUS, Type.INTERSECTION): 4,
 }
 
 
@@ -74,6 +79,8 @@ DIRECTIONMAP_TRACK_CIRCUIT_COLOR = {   # TODO :- implement this in command panel
     "<" : color.azure
 }
 
+DEACTIVE_TRACK_CIRCUIT_COLOR = color.dark_gray
+
 # track seperator constants
 SEPERATOR_SCALE = Vec3(0.1, 0.35, 1)
 SEPERATOR_COLOR = color.gray         # TODO :- is track circuit visual seperator even required?
@@ -118,7 +125,7 @@ CROSSOVER_INACTIVE_COLOR = color.gray
 # --------------------------------- MapHandler:PostParser Constants --------------------------------- #
 
 # altering global text fields
-Text.font = 'VeraMono.ttf'
+# Text.font = 'VeraMono.ttf'
 
 # declaring constants for text labels
 FIELD_TO_LABEL = {'track_circuits'} # TODO :- add label for crossover

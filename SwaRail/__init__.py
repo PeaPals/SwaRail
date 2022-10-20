@@ -7,6 +7,5 @@ from SwaRail.database import Database
 
 from SwaRail.Components import Node, Train, Signal
 from SwaRail.Frontend import MapParser, PostParser
-from SwaRail.Utilities import Timer, Vec2, input_handler
+from SwaRail.Utilities import Timer, Vec2, input_handler, CommandPanel
 from SwaRail.Simulator import MainSimulator
-

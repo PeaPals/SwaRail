@@ -18,6 +18,11 @@ def connectivity_BFS(source : str, direction: str, key_nodes: set[str]):
             Database.add_connectivity(source, node_id)
 
         for neighbour_id in Database.get_reference(node_id).get_neighbours(direction):
+            neighbour_node =  Database.get_reference(neighbour_id)
+
+            if neighbour_node.direction not in ('=', direction):
+                continue
+
             if not neighbour_id in visited:
                 queue.put(neighbour_id)
                 visited.add(neighbour_id)

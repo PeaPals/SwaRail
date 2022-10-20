@@ -13,6 +13,7 @@ class Simulator():
         logging.info("Simulator turned on")
         self.data = None
         self.start_simulation()
+        Server.reset()
         
         self.model = Entity()
         self.model.update = self.update
@@ -56,6 +57,7 @@ class Simulator():
         route = record["route"].copy()
         arriving_at_index = record["arriving_at_index"]
         direction = record["direction"]
+        priority = record["priority"]
 
         if len(route) == 0:
             raise Exception('EMPTY_ROUTE')
@@ -67,7 +69,7 @@ class Simulator():
         route = [[starting_track_circuit.id]] + route[1:]
         self.send_train_data_to_server(train_number, starting_track_circuit.id)
         
-        train = Train(number=train_number, route=route, direction=direction, speed=record["speed"], time=record["speed"])
+        train = Train(number=train_number, route=route, direction=direction, speed=record["speed"], time=record["speed"], priority=priority)
         Database.add_train(train_number, train)
         starting_track_circuit.state = State.OCCUPIED
 
@@ -81,28 +83,15 @@ class Simulator():
     def update_train_positions(self):
         for train in Database.get_all_trains():
 
-            train.time -= 1
 
-            if train.time == 0:
-                train.time = train.speed
-            else:
+            if train.time != 0:
+                train.time -= 1
                 continue
 
-            if train.route == [] and train.path == None:
-                # last_tc_node = train.currently_at
-                # node = Database.get_reference(last_tc_node)
-                # node.state = State.AVAILABLE
-                
-                # Database.remove_train(train.number)
-                continue
-
-            if train.path == None:
-                continue
+            train.time = train.speed
 
             if train.path == []:
-                train.path = None
                 continue
-
 
             curr_track_id = train.currently_at
             next_track_id = train.path[0]
@@ -114,10 +103,7 @@ class Simulator():
             for signal_id in next_track.get_all_signals(train.direction):
                 if Database.get_reference(signal_id).state == State.RED:
                     _flag = False
-                    break
-                else:
-                    break
-            # check here if all signals in curr_track is green or yellow (not red)... only then move forward
+                break
 
             if _flag:
                 next_track.state = State.OCCUPIED

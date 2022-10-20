@@ -3,16 +3,17 @@ class State:
     AVAILABLE = 0
     BOOKED = 1
     OCCUPIED = 2
+    DEACTIVE = 3
 
     # states of trains
-    RUNNING = 3
-    HAULTED = 4
+    RUNNING = 4
+    HAULTED = 5
 
     # states of signals
-    RED = 5
-    YELLOW = 6
-    GREEN = 7
-    DOUBLE_YELLOW = 8
+    RED = 6
+    YELLOW = 7
+    GREEN = 8
+    DOUBLE_YELLOW = 9
 
 
 class Type:

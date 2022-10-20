@@ -95,14 +95,11 @@ class Database:
         from SwaRail import TrainHandler
         
         cls.__trains[train_number] = train
-        TrainHandler.add_train(train_number)
+        TrainHandler.add_train(train_number, train.priority)
 
     @classmethod
     def remove_train(cls, train_number):
-        # from SwaRail import TrainHandler
-
         cls.__trains.pop(train_number, None)
-        # TrainHandler.remove_train(train_number)
 
 
     @classmethod

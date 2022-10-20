@@ -8,7 +8,7 @@ class Train:
         self.direction = '>'
         self.state = State.RUNNING
         self.route = None
-        self.path = None
+        self.path = []
         self.signal_seq = None
         self.time = None
         self.speed = None
@@ -28,23 +28,28 @@ class Train:
     def currently_at(self, new_position: str):
         self.__currently_at = new_position
 
-        if self.path == None or self.path == []:
-            self.path = None
+        if self.path == []:
             return None
         
         if new_position == self.path[0]:
             self.path.pop(0)
 
-        if self.path == []:
-            self.path = None
-            return None
-
         if new_position == self.route[0][0]:
             self.state = State.HAULTED
             self.is_haulted()
-            # self.path = None
-            self.route.pop(0)
+            self.update_route()
             self.timer = settings.TRAIN_HAULT_COUNT_DOWN
+
+
+    def update_route(self):
+        # self.route.pop(0)
+
+        if len(self.route) == 1:
+            self.route = []
+            return None
+
+
+        self.route = [[self.__currently_at]] + self.route[1:]
 
 
 

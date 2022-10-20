@@ -264,3 +264,17 @@ class Node:
                     break
 
         self.__model_in_use.color = color
+
+
+    def deactivate(self):
+        self.state = State.DEACTIVE
+        
+        for ending_node_id in self.__neighbours['>']:
+            Database.get_model(self.id, ending_node_id).color = settings.DEACTIVE_TRACK_CIRCUIT_COLOR
+
+
+    def activate(self):
+        self.state = State.AVAILABLE
+
+        for ending_node_id in self.__neighbours['>']:
+            Database.get_model(self.id, ending_node_id).color = settings.TRACK_CIRCUIT_COLOR[self.direction]
