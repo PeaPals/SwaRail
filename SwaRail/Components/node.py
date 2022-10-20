@@ -16,7 +16,8 @@ class Node:
         self.length = 0
         self.usage = 0
         
-        self.model = None
+        self.models = {}
+        self.__model_in_use = None
         self.background = None
         self.label = None
         self.seperator = None
@@ -76,7 +77,7 @@ class Node:
             ending_node: Node = Database.get_reference(ending_node_id)
             ending_position = ending_node.position
 
-            self.model = Entity(
+            model = Entity(
                 model=Mesh(
                     vertices=[self.position, ending_position],
                     mode='line',
@@ -84,6 +85,15 @@ class Node:
                 ),
                 color=settings.TRACK_CIRCUIT_COLOR[self.direction]
             )
+
+            Database.add_model(self.id, ending_node_id, model)
+
+
+        for ending_node_id in self.__neighbours['>']:
+            if ending_node_id.split('-')[1] == self.id.split('-')[1]:
+                self.__model_in_use = Database.get_model(self.id, ending_node_id)
+                break
+
 
     def draw_seperator(self):
         self.seperator = Entity(
@@ -172,6 +182,19 @@ class Node:
     
 
 
+    @property
+    def model_in_use(self):
+        return self.__model_in_use
+
+    
+    @model_in_use.setter
+    def model_in_use(self, value):
+        self.__model_in_use = value
+
+    @model_in_use.getter
+    def model_in_use(self):
+        return self.__model_in_use
+
 
     def __activate(self):
         if self.__upcoming_train == None:
@@ -185,7 +208,7 @@ class Node:
 
 
         self.__show_tooltip(self.__upcoming_train)
-        self.model.color = color.red
+        self.__model_in_use.color = color.red
         self.usage += 1
 
         train = Database.get_train(self.__upcoming_train)
@@ -215,7 +238,7 @@ class Node:
 
     def __dectivate(self):
         self.__hide_tooltip()
-        self.model.color = settings.TRACK_CIRCUIT_COLOR[self.direction]
+        self.__model_in_use.color = settings.TRACK_CIRCUIT_COLOR[self.direction]
 
         for direction in ('<', '>'):
             for signal_id in self.__signals[direction]:
@@ -223,7 +246,21 @@ class Node:
                 signal.state = State.RED
 
 
-    def book(self, train_number: str, color):
+    def book(self, next_node_id, direction, color):
+        if self.state == State.OCCUPIED:
+            return None
+
         self.state = State.BOOKED
-        self.model.color = color
-        # self.__upcoming_train = train_number # TODO :- ?
+
+        if next_node_id == None:
+            self.__model_in_use = Database.get_model(self.id, self.__neighbours[direction][0])
+        else:
+            for node_id in self.__neighbours[direction]:
+                if node_id == next_node_id:
+                    self.__model_in_use = Database.get_model(self.id, node_id)
+
+                    if self.__model_in_use == None:
+                        print((self.id, node_id))
+                    break
+
+        self.__model_in_use.color = color

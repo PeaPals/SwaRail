@@ -125,6 +125,16 @@ class RouteProcessor:
 
 
 class PathHandler:
+
+    @classmethod
+    def __book_node(cls, node_id, next_node_id, signal_seq, train_color, train):
+            node = Database.get_reference(node_id)
+            node.book(next_node_id, train.direction, train_color)
+
+            for signal_id in node.get_all_signals(train.direction):
+                signal_seq.append(State.GREEN)
+
+            return signal_seq
     
     @classmethod
     def book_path(cls, path, train):
@@ -134,14 +144,13 @@ class PathHandler:
         train.signal_seq = Queue(maxsize=0)
 
 
-        for node_id in path:
-            node = Database.get_reference(node_id)
-            node.book(train.number, train_color)
+        for index in range(len(path)-1):
+            node_id = path[index]
+            next_node_id = path[index+1]
 
-            for signal_id in node.get_all_signals(train.direction):
-                signal_seq.append(State.GREEN)
+            signal_seq = cls.__book_node(node_id, next_node_id, signal_seq, train_color, train)
 
-
+        signal_seq = cls.__book_node(path[-1], None, signal_seq, train_color, train)
 
 
         _flag = False

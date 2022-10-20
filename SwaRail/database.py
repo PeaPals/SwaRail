@@ -9,6 +9,7 @@ class Database:
     __railmap = None
     __stations = {}
     __trains = {}
+    __models = {}
     __references = {}
     __connectivity = set()
     connectivity_ratio = 0
@@ -54,7 +55,6 @@ class Database:
     @classmethod
     def get_connectivity(cls, _from, _to):
         return (_from, _to) in cls.__connectivity
-
 
     # ----------------------- classmethods for dealing with stations / haults ----------------------- #
 
@@ -112,6 +112,15 @@ class Database:
     @classmethod
     def get_all_trains(cls):
         return (train for train in cls.__trains.values())
+
+
+    @classmethod
+    def add_model(cls, _from, _to, model):
+        cls.__models[(_from, _to)] = cls.__models[(_to, _from)] = model
+
+    @classmethod
+    def get_model(cls, _from, _to):
+        return cls.__models.get((_from, _to), None)
 
 
     # -------------------------------------- other classmethods -------------------------------------- #
