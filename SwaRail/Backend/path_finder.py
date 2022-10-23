@@ -116,6 +116,8 @@ class RouteProcessor:
 
     @classmethod
     def _filter_connected_route(cls, route):
+        #Major TODO :- why do both backward and forward when only forward was required
+        
         sub_graph = cls._filter_backwards(route)
         sub_graph = cls._filter_forwards(sub_graph)
         

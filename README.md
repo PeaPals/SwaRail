@@ -8,6 +8,13 @@ The theme of this project is Automatic Traffic Control (Both Centralized and Dec
 1. run `py main.py` or `python main.py` in the project directory
 2. press `c` to toggle command panel
 3. type `loadmap <map_name>`, eg :- `loadmap sonipat`
+4. type `c` and then `s` to start simulation on the basis of schedule in `Data/Trains/route_data.json`
+
+
+## Major TODOs :-
+
+1. most major TODOs are taged inside code itself
+2. One the most problamatic thing currently faced is `Deadlock Prevention.`
 
 
 ## How security is handled in this project

@@ -43,7 +43,7 @@ TRAIN_REPATH_COUNT_DOWN = 5
 
 
 _LOGGING_FORMAT = "%(asctime)s - %(name)s - %(levelname)s -> %(message)s [%(funcName)s:%(lineno)d]"
-_LOG_FILENAME = "../SwaRail.log"
+_LOG_FILENAME = "./main.SwaRail.log"
 logging.basicConfig(format=_LOGGING_FORMAT, level=logging.NOTSET)#, filename=_LOG_FILENAME, filemode='w')
 
 

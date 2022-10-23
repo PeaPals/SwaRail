@@ -32,7 +32,6 @@ def _check_keyboard_navigations():
     # toggle command panel
 
     if held_keys['c']:
-        print('ccccc')
         CommandPanel.toggle_state()
 
     # pausing and playing application checks
