@@ -3,6 +3,10 @@
 The theme of this project is Automatic Traffic Control (Both Centralized and Decentralized).
 
 
+[![IMAGE_ALT](https://img.youtube.com/vi/UmX4kyB2wfg/0.jpg)](https://youtu.be/z1SFCy8r1aI)
+
+
+
 ### How to run :-
 
 1. run `py main.py` or `python main.py` in the project directory
