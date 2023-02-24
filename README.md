@@ -2,9 +2,7 @@
 
 The theme of this project is Automatic Traffic Control (Both Centralized and Decentralized).
 
-
-[![IMAGE_ALT](https://img.youtube.com/vi/UmX4kyB2wfg/0.jpg)](https://youtu.be/z1SFCy8r1aI)
-
+https://user-images.githubusercontent.com/55053464/221156093-498f6bd7-71ff-414c-a81c-c31d4f630df2.mp4
 
 
 ### How to run :-
